@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenSystem", "TokenSystem\TokenSystem.csproj", "{ABE7B210-B59F-4648-B7F3-8FF190728789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenSystem.Tests", "TokenSystem.Tests\TokenSystem.Tests.csproj", "{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ABE7B210-B59F-4648-B7F3-8FF190728789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABE7B210-B59F-4648-B7F3-8FF190728789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABE7B210-B59F-4648-B7F3-8FF190728789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABE7B210-B59F-4648-B7F3-8FF190728789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

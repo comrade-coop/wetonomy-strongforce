@@ -1,0 +1,17 @@
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/xunit.runner.visualstudio.dotnetcore.testadapter.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/xunit.runner.reporters.netcoreapp10.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/xunit.runner.utility.netcoreapp10.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.Tests.deps.json
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.Tests.runtimeconfig.json
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.Tests.runtimeconfig.dev.json
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.Tests.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.Tests.pdb
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/bin/Debug/netcoreapp2.2/TokenSystem.pdb
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.csprojAssemblyReference.cache
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.csproj.CoreCompileInputs.cache
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.AssemblyInfoInputs.cache
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.AssemblyInfo.cs
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.csproj.CopyComplete
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.dll
+/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem.Tests/obj/Debug/netcoreapp2.2/TokenSystem.Tests.pdb
