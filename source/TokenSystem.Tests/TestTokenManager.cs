@@ -18,7 +18,7 @@ namespace TokenSystem.Tests
         public TestTokenManager()
         {
             tokenTagger = new FungibleTokenTagger();
-            addresses = GenerateAddresses(AddressesCount);
+            addresses = StrongForceHelperUtils.GenerateRandomAddresses(AddressesCount);
         }
 
         [Fact]
@@ -97,9 +97,9 @@ namespace TokenSystem.Tests
         }
 
         [Theory]
-        [InlineData(1000, 0)]
-        [InlineData(1000, -234)]
-        public void ShouldThrowWhenAttemptingToTransferNonPositiveAmounts(decimal mintAmount, decimal transferAmount)
+        [InlineData(0)]
+        [InlineData(-234)]
+        public void ShouldThrowWhenAttemptingToTransferNonPositiveAmounts(decimal transferAmount)
         {
             var tokenManager = new TokenManager(Symbol, tokenTagger);
             Address from = addresses[0];
@@ -122,16 +122,32 @@ namespace TokenSystem.Tests
             );
         }
 
-        [Theory]
-        [InlineData(100, 50)]
-        public void ShouldThrowWhenSenderAttemptingToTransferToHimself(decimal mintAmount, decimal transferAmount)
+        [Fact]
+        public void ShouldThrowWhenSenderAttemptingToTransferToHimself()
         {
             var tokenManager = new TokenManager(Symbol, tokenTagger);
             Address from = addresses[0];
+            const decimal mintAmount = 100;
+            const decimal transferAmount = 50;
 
             tokenManager.Mint(mintAmount, from);
             Assert.Throws<ArgumentException>(
                 () => tokenManager.Transfer(transferAmount, from, from)
+            );
+        }
+
+        [Fact]
+        public void ShouldThrowWhenSenderAttemptingToTransferToNullAddress()
+        {
+            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            Address from = addresses[0];
+            Address to = new Address();
+            const decimal mintAmount = 100;
+            const decimal transferAmount = 50;
+
+            tokenManager.Mint(mintAmount, from);
+            Assert.Throws<ArgumentException>(
+                () => tokenManager.Transfer(transferAmount, from, to)
             );
         }
 
@@ -161,7 +177,7 @@ namespace TokenSystem.Tests
 
             Assert.Throws<NonPositiveTokenAmountException>(() => tokenManager.Burn(burnAmount, address));
         }
-        
+
         [Theory]
         [InlineData(100, 110)]
         public void ShouldThrowWhenAttemptingToBurnMoreThanOwnedTokenAmount(decimal mintAmount, decimal burnAmount)
@@ -172,18 +188,6 @@ namespace TokenSystem.Tests
             tokenManager.Mint(mintAmount, address);
 
             Assert.Throws<InsufficientTokenAmountException>(() => tokenManager.Burn(burnAmount, address));
-        }
-
-        private List<Address> GenerateAddresses(int count)
-        {
-            var addressFactory = new RandomAddressFactory();
-            var generatedAddresses = new List<Address>(count);
-            for (var i = 0; i < count; i++)
-            {
-                generatedAddresses.Add(addressFactory.Create());
-            }
-
-            return generatedAddresses;
         }
     }
 }

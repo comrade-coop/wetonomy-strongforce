@@ -12,11 +12,16 @@ namespace TokenSystem.StrongForceMocks
             this.value = value;
         }
 
+        public Address()
+        {
+            value = new byte[32];
+        }
+
         public byte[] Value => value;
 
         public bool Equals(Address other)
         {
-            return Equals(value, other.value);
+            return CompareTo(other) == 0;
         }
 
         public override int GetHashCode()
@@ -28,7 +33,7 @@ namespace TokenSystem.StrongForceMocks
         {
             if (value.Length != other.Value.Length)
             {
-                throw new ArgumentException("Arrays must be of equal length.");
+                throw new ArgumentException("Address must be a 32-byte long array.");
             }
 
             int length = value.Length;

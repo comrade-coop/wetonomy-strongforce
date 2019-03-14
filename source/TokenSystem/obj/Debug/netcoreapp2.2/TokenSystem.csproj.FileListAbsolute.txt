@@ -1,9 +1,0 @@
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/bin/Debug/netcoreapp2.2/TokenSystem.deps.json
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/bin/Debug/netcoreapp2.2/TokenSystem.dll
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/bin/Debug/netcoreapp2.2/TokenSystem.pdb
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.csprojAssemblyReference.cache
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.csproj.CoreCompileInputs.cache
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.AssemblyInfoInputs.cache
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.AssemblyInfo.cs
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.dll
-/home/ivanasen/Code/Projects/RiderProjects/Wetonomy/TokenSystem/obj/Debug/netcoreapp2.2/TokenSystem.pdb

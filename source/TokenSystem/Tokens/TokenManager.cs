@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TokenSystem.Exceptions;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.TokenEventArgs;
 
 namespace TokenSystem.Tokens
 {
@@ -14,6 +15,10 @@ namespace TokenSystem.Tokens
         private IDictionary<Address, decimal> holdersToBalances;
         private IDictionary<string, decimal> tagsToTotalBalances;
         private decimal totalBalance;
+
+        public event EventHandler<TokensMintedEventArgs> TokensMinted;
+        public event EventHandler<TokensTransferredEventArgs> TokensTransferred;
+        public event EventHandler<TokensBurnedEventArgs> TokensBurned;
 
         public TokenManager(string symbol,
             IDictionary<Address, IDictionary<string, decimal>> initialAddressesToBalances,
@@ -46,18 +51,23 @@ namespace TokenSystem.Tokens
         public IDictionary<string, decimal> TaggedTotalBalance(ITagProperties tagProperties = null)
             => tokenTagger.Pick(tagsToTotalBalances, tagProperties);
 
-        public void Mint(decimal amount, Address receiver, ITagProperties tagProperties = null)
+        public void Mint(decimal amount, Address to, ITagProperties tagProperties = null)
         {
             RequirePositiveAmount(amount);
-            RequireValidAddress(receiver);
+            RequireValidAddress(to);
 
-            IDictionary<string, decimal> newTokens = tokenTagger.Tag(receiver, amount);
-            AddToBalance(newTokens, receiver);
+            IDictionary<string, decimal> newTokens = tokenTagger.Tag(to, amount);
+            AddToBalance(newTokens, to);
+
+            var tokensMintedArgs = new TokensMintedEventArgs(amount, newTokens, to);
+            OnTokensMinted(tokensMintedArgs);
         }
 
         public void Transfer(decimal amount, Address from, Address to, ITagProperties tagProperties = null)
         {
             RequirePositiveAmount(amount);
+            RequireValidAddress(from);
+            RequireValidAddress(to);
 
             if (from.Equals(to))
             {
@@ -68,15 +78,21 @@ namespace TokenSystem.Tokens
                 tokenTagger.Pick(holdersToTaggedBalances[from], amount, tagProperties);
             AddToBalance(tokensToTransfer, to);
             RemoveFromBalance(tokensToTransfer, from);
+
+            var transferArgs = new TokensTransferredEventArgs(amount, tokensToTransfer, from, to);
+            OnTokensTransferred(transferArgs);
         }
 
-        public void Burn(decimal amount, Address tokenHolder, ITagProperties tagProperties = null)
+        public void Burn(decimal amount, Address from, ITagProperties tagProperties = null)
         {
             RequirePositiveAmount(amount);
 
             IDictionary<string, decimal> tokensToBurn =
-                tokenTagger.Pick(holdersToTaggedBalances[tokenHolder], amount, tagProperties);
-            RemoveFromBalance(tokensToBurn, tokenHolder);
+                tokenTagger.Pick(holdersToTaggedBalances[from], amount, tagProperties);
+            RemoveFromBalance(tokensToBurn, from);
+
+            var burnArgs = new TokensBurnedEventArgs(amount, tokensToBurn, from);
+            OnTokensBurned(burnArgs);
         }
 
         private void RequirePositiveAmount(decimal tokenAmount)
@@ -89,7 +105,7 @@ namespace TokenSystem.Tokens
 
         private void RequireValidAddress(Address address)
         {
-            if (address.Equals(new Address(new byte[] { })))
+            if (address.Equals(new Address()))
             {
                 throw new ArgumentException("Null Address used");
             }
@@ -170,6 +186,21 @@ namespace TokenSystem.Tokens
             holdersToBalances[holder] += amount;
             tagsToTotalBalances[tokenTag] += amount;
             totalBalance += amount;
+        }
+
+        protected virtual void OnTokensMinted(TokensMintedEventArgs e)
+        {
+            TokensMinted?.Invoke(this, e);
+        }
+
+        protected virtual void OnTokensTransferred(TokensTransferredEventArgs e)
+        {
+            TokensTransferred?.Invoke(this, e);
+        }
+
+        protected virtual void OnTokensBurned(TokensBurnedEventArgs e)
+        {
+            TokensBurned?.Invoke(this, e);
         }
     }
 }
