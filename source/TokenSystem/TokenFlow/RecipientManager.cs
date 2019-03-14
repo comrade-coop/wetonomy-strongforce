@@ -5,13 +5,13 @@ namespace TokenSystem.TokenFlow
 {
     public class RecipientManager
     {
-        private readonly List<Address> recipients;
+        private readonly IList<Address> recipients;
 
         public RecipientManager() : this(new List<Address>())
         {
         }
 
-        public RecipientManager(List<Address> recipients)
+        public RecipientManager(IList<Address> recipients)
         {
             this.recipients = recipients;
         }
@@ -31,6 +31,6 @@ namespace TokenSystem.TokenFlow
             return recipients.Remove(recipient);
         }
 
-        public List<Address> Recipients => recipients;
+        public IList<Address> Recipients => recipients;
     }
 }

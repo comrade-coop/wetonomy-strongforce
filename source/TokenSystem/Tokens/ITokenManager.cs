@@ -15,10 +15,10 @@ namespace TokenSystem.Tokens
 
         IDictionary<string, decimal> TaggedTotalBalance(ITagProperties tagProperties = null);
 
-        void Mint(decimal amount, Address receiver, ITagProperties tagProperties = null);
+        void Mint(decimal amount, Address to, ITagProperties tagProperties = null);
 
         void Transfer(decimal amount, Address from, Address to, ITagProperties tagProperties = null);
 
-        void Burn(decimal amount, Address tokenHolder, ITagProperties tagProperties = null);
+        void Burn(decimal amount, Address from, ITagProperties tagProperties = null);
     }
 }
