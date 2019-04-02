@@ -1,0 +1,14 @@
+language: csharp
+solution: src/Wetonomy.sln
+sudo: required
+dist: xenial
+mono: none
+dotnet: 2.2
+
+install:
+  - dotnet restore src/Wetonomy.sln
+  - dotnet add src/TokenSystem.Tests/TokenSystem.Tests.csproj package  xunit --version 2.4.1
+
+script:
+  - dotnet build src/Wetonomy.sln
+  - dotnet test src/TokenSystem.Tests/TokenSystem.Tests.csproj
