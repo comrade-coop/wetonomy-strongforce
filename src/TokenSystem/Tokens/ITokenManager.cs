@@ -13,11 +13,5 @@ namespace TokenSystem.Tokens
 		TaggedTokens TaggedBalanceOf(Address tokenHolder);
 
 		TaggedTokens TaggedTotalBalance();
-
-		void Mint(decimal amount, Address to);
-
-		void Transfer(decimal amount, Address from, Address to, ITaggedTokenPickStrategy tokenPickStrategy = null);
-
-		void Burn(decimal amount, Address from, ITaggedTokenPickStrategy tokenPickStrategy = null);
 	}
 }

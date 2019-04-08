@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using ContractsCore;
+using ContractsCore.Contracts;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenEventArgs;
+using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.Tokens
 {
-	public class TokenManager : ITokenManager
+	public class TokenManager : PermittedContract, ITokenManager
 	{
 		private readonly string symbol;
 		private readonly ITokenTagger tokenTagger;
@@ -21,9 +23,13 @@ namespace TokenSystem.Tokens
 		public event EventHandler<TokensTransferredEventArgs> TokensTransferred;
 		public event EventHandler<TokensBurnedEventArgs> TokensBurned;
 
-		public TokenManager(string symbol,
+		public TokenManager(
+			Address address,
+			Address permissionManager,
+			string symbol,
 			IDictionary<Address, TaggedTokens> initialAddressesToBalances,
 			ITokenTagger tokenTagger, ITaggedTokenPickStrategy defaultPickStrategy)
+			: base(address, permissionManager)
 		{
 			this.symbol = symbol;
 			this.tokenTagger = tokenTagger;
@@ -31,8 +37,18 @@ namespace TokenSystem.Tokens
 			this.InitialiseBalances(initialAddressesToBalances);
 		}
 
-		public TokenManager(string symbol, ITokenTagger tokenTagger, ITaggedTokenPickStrategy defaultPickStrategy)
-			: this(symbol, new SortedDictionary<Address, TaggedTokens>(), tokenTagger, defaultPickStrategy)
+		public TokenManager(
+			Address address,
+			Address permissionManager,
+			string symbol,
+			ITokenTagger tokenTagger,
+			ITaggedTokenPickStrategy defaultPickStrategy)
+			: this(address,
+				permissionManager,
+				symbol,
+				new SortedDictionary<Address, TaggedTokens>(),
+				tokenTagger,
+				defaultPickStrategy)
 		{
 		}
 
@@ -52,7 +68,7 @@ namespace TokenSystem.Tokens
 
 		public TaggedTokens TaggedTotalBalance() => this.tagsToTotalBalances;
 
-		public void Mint(decimal amount, Address to)
+		private void Mint(decimal amount, Address to)
 		{
 			RequirePositiveAmount(amount);
 			RequireValidAddress(to);
@@ -64,7 +80,7 @@ namespace TokenSystem.Tokens
 			this.OnTokensMinted(tokensMintedArgs);
 		}
 
-		public void Transfer(decimal amount, Address from, Address to, ITaggedTokenPickStrategy pickStrategy = null)
+		private void Transfer(decimal amount, Address from, Address to, ITaggedTokenPickStrategy pickStrategy = null)
 		{
 			RequirePositiveAmount(amount);
 			RequireValidAddress(from);
@@ -86,7 +102,7 @@ namespace TokenSystem.Tokens
 			this.OnTokensTransferred(transferArgs);
 		}
 
-		public void Burn(decimal amount, Address from, ITaggedTokenPickStrategy pickStrategy = null)
+		private void Burn(decimal amount, Address from, ITaggedTokenPickStrategy pickStrategy = null)
 		{
 			RequirePositiveAmount(amount);
 
@@ -206,6 +222,36 @@ namespace TokenSystem.Tokens
 		protected virtual void OnTokensBurned(TokensBurnedEventArgs e)
 		{
 			this.TokensBurned?.Invoke(this, e);
+		}
+
+		protected override object GetState()
+		{
+			throw new NotImplementedException();
+		}
+
+		protected override bool HandleAcceptedAction(Action action)
+		{
+			switch (action)
+			{
+				case MintAction mintAction:
+					this.Mint(mintAction.Amount, mintAction.To);
+					return true;
+
+				case TransferAction transferAction:
+					this.Transfer(
+						transferAction.Amount,
+						transferAction.From,
+						transferAction.To,
+						transferAction.PickStrategy);
+					return true;
+
+				case BurnAction burnAction:
+					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
+					return true;
+
+				default:
+					return false;
+			}
 		}
 	}
 }
