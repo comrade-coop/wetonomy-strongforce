@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
@@ -14,7 +14,7 @@ namespace TokenSystem.TokenFlow
         {
         }
 
-        public TokenSplitter(List<Address> recipients, TokenManager tokenManager, ISplitStrategy splitStrategy)
+        public TokenSplitter(IList<Address> recipients, TokenManager tokenManager, ISplitStrategy splitStrategy)
             : base(recipients)
         {
             this.tokenManager = tokenManager;
@@ -23,7 +23,7 @@ namespace TokenSystem.TokenFlow
 
         protected void Split()
         {
-            splitStrategy.Split(Recipients, tokenManager);
+            this.splitStrategy.Split(this.Recipients, this.tokenManager);
         }
     }
 }

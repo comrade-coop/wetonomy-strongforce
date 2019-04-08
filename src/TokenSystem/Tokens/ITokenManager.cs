@@ -1,24 +1,23 @@
-using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 
 namespace TokenSystem.Tokens
 {
-    public interface ITokenManager
-    {
-        string Symbol();
+	public interface ITokenManager
+	{
+		string Symbol();
 
-        decimal BalanceOf(Address tokenHolder);
+		decimal BalanceOf(Address tokenHolder);
 
-        IDictionary<string, decimal> TaggedBalanceOf(Address tokenHolder, ITagProperties tagProperties = null);
+		decimal TotalBalance();
 
-        decimal TotalBalance();
+		TaggedTokens TaggedBalanceOf(Address tokenHolder);
 
-        IDictionary<string, decimal> TaggedTotalBalance(ITagProperties tagProperties = null);
+		TaggedTokens TaggedTotalBalance();
 
-        void Mint(decimal amount, Address to, ITagProperties tagProperties = null);
+		void Mint(decimal amount, Address to);
 
-        void Transfer(decimal amount, Address from, Address to, ITagProperties tagProperties = null);
+		void Transfer(decimal amount, Address from, Address to, ITaggedTokenPickStrategy tokenPickStrategy = null);
 
-        void Burn(decimal amount, Address from, ITagProperties tagProperties = null);
-    }
+		void Burn(decimal amount, Address from, ITaggedTokenPickStrategy tokenPickStrategy = null);
+	}
 }

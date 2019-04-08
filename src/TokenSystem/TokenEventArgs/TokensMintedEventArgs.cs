@@ -1,22 +1,22 @@
 using System;
-using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-    public class TokensMintedEventArgs : EventArgs
-    {
-        public TokensMintedEventArgs(decimal amount, IDictionary<string, decimal> tokens, Address to)
-        {
-            Amount = amount;
-            Tokens = tokens;
-            To = to;
-        }
+	public class TokensMintedEventArgs : EventArgs
+	{
+		public TokensMintedEventArgs(decimal amount, TaggedTokens tokens, Address to)
+		{
+			this.Amount = amount;
+			this.Tokens = tokens;
+			this.To = to;
+		}
 
-        public decimal Amount { get; }
+		public decimal Amount { get; }
 
-        public IDictionary<string, decimal> Tokens { get; }
+		public TaggedTokens Tokens { get; }
 
-        public Address To { get; }
-    }
+		public Address To { get; }
+	}
 }

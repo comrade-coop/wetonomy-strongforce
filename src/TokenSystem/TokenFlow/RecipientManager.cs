@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 
 namespace TokenSystem.TokenFlow
 {
@@ -18,17 +18,17 @@ namespace TokenSystem.TokenFlow
 
         public void AddRecipient(Address recipient)
         {
-            if (recipients.Contains(recipient))
+            if (this.recipients.Contains(recipient))
             {
                 return;
             }
 
-            recipients.Add(recipient);
+            this.recipients.Add(recipient);
         }
 
         public bool RemoveRecipient(Address recipient)
         {
-            return recipients.Remove(recipient);
+            return this.recipients.Remove(recipient);
         }
 
         public IList<Address> Recipients => recipients;
