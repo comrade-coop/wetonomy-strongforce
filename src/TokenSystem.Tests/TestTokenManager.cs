@@ -12,7 +12,7 @@ namespace TokenSystem.Tests
         private const string Symbol = "Test";
         private const int AddressesCount = 10;
 
-        private readonly ITokenTagger tokenTagger;
+        private readonly ITokenTagger<string> tokenTagger;
         private readonly List<Address> addresses;
 
         public TestTokenManager()
@@ -24,16 +24,16 @@ namespace TokenSystem.Tests
         [Fact]
         public void ShouldCreateTokenManagerWithCorrectSymbol()
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Assert.Equal(Symbol, tokenManager.Symbol());
         }
 
         [Fact]
         public void ShouldHaveAllInitialBalancesAsZero()
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             decimal totalBalance = tokenManager.TotalBalance();
-            IDictionary<string, decimal> taggedBalance = tokenManager.TaggedTotalBalance();
+            TaggedTokens<string> taggedBalance = tokenManager.TaggedTotalBalance();
 
             Assert.Equal(0, totalBalance);
             //TokenManager shouldn't have created a balance with a tag
@@ -42,7 +42,7 @@ namespace TokenSystem.Tests
             addresses.ForEach(address =>
             {
                 decimal balance = tokenManager.BalanceOf(address);
-                IDictionary<string, decimal> taggedBalanceOfAddress =
+                TaggedTokens<string> taggedBalanceOfAddress =
                     tokenManager.TaggedBalanceOf(address);
                 Assert.Equal(0, balance);
                 Assert.True(taggedBalanceOfAddress.Keys.Count == 0);
@@ -54,7 +54,7 @@ namespace TokenSystem.Tests
         [InlineData(9999999999999999999)]
         public void ShouldMintTokensCorrectly(decimal amount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address receiver = addresses[0];
 
             tokenManager.Mint(amount, receiver);
@@ -67,7 +67,7 @@ namespace TokenSystem.Tests
         [InlineData(-100)]
         public void ShouldThrowWhenAttemptingToMintNonPositiveTokenAmounts(decimal amount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address receiver = addresses[0];
 
             Assert.Throws<NonPositiveTokenAmountException>(() => tokenManager.Mint(amount, receiver));
@@ -77,7 +77,7 @@ namespace TokenSystem.Tests
         [InlineData(1000, 50)]
         public void ShouldTransferTokensCorrectly(decimal mintAmount, decimal transferAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address from = addresses[0];
             Address to = addresses[1];
 
@@ -101,7 +101,7 @@ namespace TokenSystem.Tests
         [InlineData(-234)]
         public void ShouldThrowWhenAttemptingToTransferNonPositiveAmounts(decimal transferAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address from = addresses[0];
             Address to = addresses[1];
 
@@ -112,7 +112,7 @@ namespace TokenSystem.Tests
         [InlineData(100, 5000)]
         public void ShouldThrowWhenAttemptingToTransferMoreThanOwnedTokens(decimal mintAmount, decimal transferAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address from = addresses[0];
             Address to = addresses[1];
 
@@ -125,7 +125,7 @@ namespace TokenSystem.Tests
         [Fact]
         public void ShouldThrowWhenSenderAttemptingToTransferToHimself()
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address from = addresses[0];
             const decimal mintAmount = 100;
             const decimal transferAmount = 50;
@@ -139,7 +139,7 @@ namespace TokenSystem.Tests
         [Fact]
         public void ShouldThrowWhenSenderAttemptingToTransferToNullAddress()
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address from = addresses[0];
             Address to = new Address();
             const decimal mintAmount = 100;
@@ -155,7 +155,7 @@ namespace TokenSystem.Tests
         [InlineData(100, 90)]
         public void ShouldBurnTokensCorrectly(decimal mintAmount, decimal burnAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address address = addresses[0];
 
             tokenManager.Mint(mintAmount, address);
@@ -172,7 +172,7 @@ namespace TokenSystem.Tests
         [InlineData(-1000)]
         public void ShouldThrowWhenAttemptingToBurnNonPositiveTokenAmounts(decimal burnAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address address = addresses[0];
 
             Assert.Throws<NonPositiveTokenAmountException>(() => tokenManager.Burn(burnAmount, address));
@@ -182,7 +182,7 @@ namespace TokenSystem.Tests
         [InlineData(100, 110)]
         public void ShouldThrowWhenAttemptingToBurnMoreThanOwnedTokenAmount(decimal mintAmount, decimal burnAmount)
         {
-            var tokenManager = new TokenManager(Symbol, tokenTagger);
+            var tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             Address address = addresses[0];
 
             tokenManager.Mint(mintAmount, address);

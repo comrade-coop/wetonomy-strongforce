@@ -8,21 +8,21 @@ namespace TokenSystem.Tests
 {
     public class TestFungibleTokenTagger
     {
-        private readonly ITokenTagger fungibleTagger;
+        private readonly ITokenTagger<string> fungibleTagger;
         private readonly Address defaultAddress;
 
         public TestFungibleTokenTagger()
         {
-            fungibleTagger = new FungibleTokenTagger();
+            this.fungibleTagger = new FungibleTokenTagger();
             IAddressFactory addressFactory = new RandomAddressFactory();
-            defaultAddress = addressFactory.Create();
+            this.defaultAddress = addressFactory.Create();
         }
 
         [Theory]
         [InlineData(100)]
         public void ShouldTagTokensCorrectly(decimal amount)
         {
-            IDictionary<string, decimal> tokens = fungibleTagger.Tag(defaultAddress, amount);
+            TaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, amount);
             Assert.Equal(amount, tokens[FungibleTokenTagger.DefaultTokenTag]);
         }
 
@@ -31,15 +31,16 @@ namespace TokenSystem.Tests
         [InlineData(-100)]
         public void ShouldThrowWhenInvalidAmountOfTokensAreTagged(decimal amount)
         {
-            Assert.Throws<NonPositiveTokenAmountException>(() => fungibleTagger.Tag(defaultAddress, amount));
+            Assert.Throws<NonPositiveTokenAmountException>(
+                () => this.fungibleTagger.Tag(this.defaultAddress, amount));
         }
 
         [Theory]
         [InlineData(100000)]
         public void ShouldPickAllTokensCorrectly(decimal amount)
         {
-            IDictionary<string, decimal> tokens = fungibleTagger.Tag(defaultAddress, amount);
-            IDictionary<string, decimal> pickedTokens = fungibleTagger.Pick(tokens);
+            TaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, amount);
+            TaggedTokens<string> pickedTokens = this.fungibleTagger.Pick(tokens);
             Assert.Equal(amount, pickedTokens[FungibleTokenTagger.DefaultTokenTag]);
         }
 
@@ -48,8 +49,8 @@ namespace TokenSystem.Tests
         [InlineData(23, 0)]
         public void ShouldPickXAmountOfTokensCorrectly(decimal mintAmount, decimal pickAmount)
         {
-            IDictionary<string, decimal> tokens = fungibleTagger.Tag(defaultAddress, mintAmount);
-            IDictionary<string, decimal> pickedTokens = fungibleTagger.Pick(tokens, pickAmount);
+            TaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
+            TaggedTokens<string> pickedTokens = this.fungibleTagger.Pick(tokens, pickAmount);
             Assert.Equal(pickAmount, pickedTokens[FungibleTokenTagger.DefaultTokenTag]);
         }
 
@@ -57,8 +58,8 @@ namespace TokenSystem.Tests
         [InlineData(100, -10)]
         public void ShouldThrowWhenPickingNegativeAmountOfTokens(decimal mintAmount, decimal pickAmount)
         {
-            IDictionary<string, decimal> tokens = fungibleTagger.Tag(defaultAddress, mintAmount);
-            Assert.Throws<NonPositiveTokenAmountException>(() => fungibleTagger.Pick(tokens, pickAmount));
+            TaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
+            Assert.Throws<NonPositiveTokenAmountException>(() => this.fungibleTagger.Pick(tokens, pickAmount));
         }
     }
 }

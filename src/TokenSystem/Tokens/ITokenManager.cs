@@ -3,22 +3,22 @@ using TokenSystem.StrongForceMocks;
 
 namespace TokenSystem.Tokens
 {
-    public interface ITokenManager
+    public interface ITokenManager<T>
     {
         string Symbol();
 
         decimal BalanceOf(Address tokenHolder);
 
-        IDictionary<string, decimal> TaggedBalanceOf(Address tokenHolder, ITagProperties tagProperties = null);
+        TaggedTokens<T> TaggedBalanceOf(Address tokenHolder, object tagProps = null);
 
         decimal TotalBalance();
 
-        IDictionary<string, decimal> TaggedTotalBalance(ITagProperties tagProperties = null);
+        TaggedTokens<T> TaggedTotalBalance(object tagProps = null);
 
-        void Mint(decimal amount, Address to, ITagProperties tagProperties = null);
+        void Mint(decimal amount, Address to, object tagProps = null);
 
-        void Transfer(decimal amount, Address from, Address to, ITagProperties tagProperties = null);
+        void Transfer(decimal amount, Address from, Address to, object tagProps = null);
 
-        void Burn(decimal amount, Address from, ITagProperties tagProperties = null);
+        void Burn(decimal amount, Address from, object tagProps = null);
     }
 }

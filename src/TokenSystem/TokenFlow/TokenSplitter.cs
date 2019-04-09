@@ -4,17 +4,17 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-    public class TokenSplitter : RecipientManager
+    public class TokenSplitter<T> : RecipientManager
     {
-        private readonly TokenManager tokenManager;
-        private readonly ISplitStrategy splitStrategy;
+        private readonly TokenManager<T> tokenManager;
+        private readonly ISplitStrategy<T> splitStrategy;
 
-        public TokenSplitter(TokenManager tokenManager, ISplitStrategy splitStrategy) :
+        public TokenSplitter(TokenManager<T> tokenManager, ISplitStrategy<T> splitStrategy) :
             this(new List<Address>(), tokenManager, splitStrategy)
         {
         }
 
-        public TokenSplitter(List<Address> recipients, TokenManager tokenManager, ISplitStrategy splitStrategy)
+        public TokenSplitter(List<Address> recipients, TokenManager<T> tokenManager, ISplitStrategy<T> splitStrategy)
             : base(recipients)
         {
             this.tokenManager = tokenManager;

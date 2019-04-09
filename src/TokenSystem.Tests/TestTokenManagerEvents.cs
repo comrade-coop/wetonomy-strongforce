@@ -12,12 +12,12 @@ namespace TokenSystem.Tests
         private const int AddressesCount = 5;
 
         private readonly List<Address> addresses;
-        private readonly TokenManager tokenManager;
+        private readonly TokenManager<string> tokenManager;
 
         public TestTokenManagerEvents()
         {
             var tokenTagger = new FungibleTokenTagger();
-            tokenManager = new TokenManager(Symbol, tokenTagger);
+            tokenManager = new TokenManager<string>(Symbol, tokenTagger);
             addresses = StrongForceHelperUtils.GenerateRandomAddresses(AddressesCount);
         }
 
@@ -26,7 +26,7 @@ namespace TokenSystem.Tests
         public void ShouldRaiseTokensMintedEventCorrectly(decimal mintAmount)
         {
             Address to = addresses[0];
-            tokenManager.TokensMinted += delegate(object sender, TokensMintedEventArgs args)
+            tokenManager.TokensMinted += delegate(object sender, TokensMintedEventArgs<string> args)
             {
                 Assert.Equal(mintAmount, args.Amount);
                 Assert.Equal(to, args.To);
@@ -42,7 +42,7 @@ namespace TokenSystem.Tests
             Address from = addresses[0];
             Address to = addresses[1];
 
-            tokenManager.TokensTransferred += delegate(object sender, TokensTransferredEventArgs args)
+            tokenManager.TokensTransferred += delegate(object sender, TokensTransferredEventArgs<string> args)
             {
                 Assert.Equal(transferAmount, args.Amount);
                 Assert.Equal(from, args.From);
@@ -59,7 +59,7 @@ namespace TokenSystem.Tests
         {
             Address from = addresses[0];
 
-            tokenManager.TokensBurned += delegate(object sender, TokensBurnedEventArgs args)
+            tokenManager.TokensBurned += delegate(object sender, TokensBurnedEventArgs<string> args)
             {
                 Assert.Equal(burnAmount, args.Amount);
                 Assert.Equal(from, args.From);

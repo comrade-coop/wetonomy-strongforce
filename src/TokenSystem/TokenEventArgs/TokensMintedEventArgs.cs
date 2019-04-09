@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-    public class TokensMintedEventArgs : EventArgs
+    public class TokensMintedEventArgs<T> : EventArgs
     {
-        public TokensMintedEventArgs(decimal amount, IDictionary<string, decimal> tokens, Address to)
+        public TokensMintedEventArgs(decimal amount, TaggedTokens<T> tokens, Address to)
         {
             Amount = amount;
             Tokens = tokens;
@@ -15,7 +16,7 @@ namespace TokenSystem.TokenEventArgs
 
         public decimal Amount { get; }
 
-        public IDictionary<string, decimal> Tokens { get; }
+        public TaggedTokens<T> Tokens { get; }
 
         public Address To { get; }
     }
