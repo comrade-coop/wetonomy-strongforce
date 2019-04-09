@@ -4,11 +4,11 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-    public class UniformSplitStrategy : ISplitStrategy
-    {
-        public void Split(IList<Address> recipients, ITokenManager tokenManager)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
+	public class UniformSplitStrategy : ISplitStrategy<string>
+	{
+		public void Split(IList<Address> recipients, ITokenManager<string> tokenManager)
+		{
+			throw new System.NotImplementedException();
+		}
+	}
 }

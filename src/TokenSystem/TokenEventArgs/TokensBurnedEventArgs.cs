@@ -1,22 +1,22 @@
 using System;
-using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-    public class TokensBurnedEventArgs : EventArgs
-    {
-        public TokensBurnedEventArgs(decimal amount, IDictionary<string, decimal> tokens, Address from)
-        {
-            Amount = amount;
-            Tokens = tokens;
-            From = from;
-        }
+	public class TokensBurnedEventArgs<TTagType> : EventArgs
+	{
+		public TokensBurnedEventArgs(decimal amount, TaggedTokens<TTagType> tokens, Address from)
+		{
+			this.Amount = amount;
+			this.Tokens = tokens;
+			this.From = from;
+		}
 
-        public decimal Amount { get; }
+		public decimal Amount { get; }
 
-        public IDictionary<string, decimal> Tokens { get; }
+		public TaggedTokens<TTagType> Tokens { get; }
 
-        public Address From { get; }
-    }
+		public Address From { get; }
+	}
 }

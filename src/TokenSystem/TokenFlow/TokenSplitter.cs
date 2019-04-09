@@ -4,26 +4,29 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-    public class TokenSplitter : RecipientManager
-    {
-        private readonly TokenManager tokenManager;
-        private readonly ISplitStrategy splitStrategy;
+	public class TokenSplitter<TTokenTagType> : RecipientManager
+	{
+		private readonly TokenManager<TTokenTagType> tokenManager;
+		private readonly ISplitStrategy<TTokenTagType> splitStrategy;
 
-        public TokenSplitter(TokenManager tokenManager, ISplitStrategy splitStrategy) :
-            this(new List<Address>(), tokenManager, splitStrategy)
-        {
-        }
+		public TokenSplitter(TokenManager<TTokenTagType> tokenManager, ISplitStrategy<TTokenTagType> splitStrategy) :
+			this(new List<Address>(), tokenManager, splitStrategy)
+		{
+		}
 
-        public TokenSplitter(List<Address> recipients, TokenManager tokenManager, ISplitStrategy splitStrategy)
-            : base(recipients)
-        {
-            this.tokenManager = tokenManager;
-            this.splitStrategy = splitStrategy;
-        }
+		public TokenSplitter(
+			IList<Address> recipients,
+			TokenManager<TTokenTagType> tokenManager,
+			ISplitStrategy<TTokenTagType> splitStrategy)
+			: base(recipients)
+		{
+			this.tokenManager = tokenManager;
+			this.splitStrategy = splitStrategy;
+		}
 
-        protected void Split()
-        {
-            splitStrategy.Split(Recipients, tokenManager);
-        }
-    }
+		protected void Split()
+		{
+			this.splitStrategy.Split(this.Recipients, this.tokenManager);
+		}
+	}
 }
