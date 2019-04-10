@@ -3,7 +3,7 @@ using TokenSystem.StrongForceMocks;
 
 namespace TokenSystem.Tests
 {
-    public static class StrongForceHelperUtils
+    public static class AddressHelpers
     {
         public static List<Address> GenerateRandomAddresses(int count)
         {

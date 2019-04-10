@@ -8,7 +8,6 @@ namespace TokenSystem.Tests
 {
 	public class TestTokenManagerEvents
 	{
-		private const string Symbol = "Test";
 		private const int AddressesCount = 5;
 
 		private readonly List<Address> addresses;
@@ -17,8 +16,8 @@ namespace TokenSystem.Tests
 		public TestTokenManagerEvents()
 		{
 			var tokenTagger = new FungibleTokenTagger();
-			this.tokenManager = new TokenManager<string>(Symbol, tokenTagger, new FungibleTokenPicker());
-			this.addresses = StrongForceHelperUtils.GenerateRandomAddresses(AddressesCount);
+			this.tokenManager = new TokenManager<string>(tokenTagger, new FungibleTokenPicker());
+			this.addresses = AddressHelpers.GenerateRandomAddresses(AddressesCount);
 		}
 
 		[Theory]

@@ -19,7 +19,6 @@ namespace TokenSystem.Tokens
 		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
 
 		public TokenManager(
-			string symbol,
 			ITokenTagger<TTagType> tokenTagger,
 			ITokenPicker<TTagType> defaultTokenPicker)
 		{
