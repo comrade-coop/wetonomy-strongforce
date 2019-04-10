@@ -1,206 +1,133 @@
 using System;
 using System.Collections.Generic;
-using TokenSystem.Exceptions;
 using TokenSystem.StrongForceMocks;
 using TokenSystem.TokenEventArgs;
 
 namespace TokenSystem.Tokens
 {
-    public class TokenManager : ITokenManager
-    {
-        private readonly string symbol;
-        private readonly ITokenTagger tokenTagger;
-
-        private IDictionary<Address, IDictionary<string, decimal>> holdersToTaggedBalances;
-        private IDictionary<Address, decimal> holdersToBalances;
-        private IDictionary<string, decimal> tagsToTotalBalances;
-        private decimal totalBalance;
-
-        public event EventHandler<TokensMintedEventArgs> TokensMinted;
-        public event EventHandler<TokensTransferredEventArgs> TokensTransferred;
-        public event EventHandler<TokensBurnedEventArgs> TokensBurned;
-
-        public TokenManager(string symbol,
-            IDictionary<Address, IDictionary<string, decimal>> initialAddressesToBalances,
-            ITokenTagger tokenTagger)
-        {
-            this.symbol = symbol;
-            this.tokenTagger = tokenTagger;
-            InitialiseBalances(initialAddressesToBalances);
-        }
-
-        public TokenManager(string symbol, ITokenTagger tokenTagger) : this(symbol,
-            new SortedDictionary<Address, IDictionary<string, decimal>>(), tokenTagger)
-        {
-        }
-
-        public string Symbol() => symbol;
-
-        public decimal BalanceOf(Address tokenHolder)
-            => holdersToBalances.ContainsKey(tokenHolder) ? holdersToBalances[tokenHolder] : 0;
+	public class TokenManager<TTagType> : ITokenManager<TTagType>
+	{
+		private readonly ITokenTagger<TTagType> tokenTagger;
+		private readonly ITokenPicker<TTagType> defaultTokenPicker;
 
 
-        public IDictionary<string, decimal> TaggedBalanceOf(Address tokenHolder, ITagProperties tagProperties = null)
-            => holdersToTaggedBalances.ContainsKey(tokenHolder)
-                ? tokenTagger.Pick(holdersToTaggedBalances[tokenHolder], tagProperties)
-                : new Dictionary<string, decimal>();
+		private readonly IDictionary<Address, TaggedTokens<TTagType>> holdersToBalances;
+		private readonly TaggedTokens<TTagType> totalBalance;
 
-        public decimal TotalBalance()
-            => totalBalance;
+		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
+		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
+		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
 
-        public IDictionary<string, decimal> TaggedTotalBalance(ITagProperties tagProperties = null)
-            => tokenTagger.Pick(tagsToTotalBalances, tagProperties);
+		public TokenManager(
+			ITokenTagger<TTagType> tokenTagger,
+			ITokenPicker<TTagType> defaultTokenPicker)
+		{
+			this.tokenTagger = tokenTagger;
+			this.holdersToBalances = new Dictionary<Address, TaggedTokens<TTagType>>();
+			this.totalBalance = new TaggedTokens<TTagType>();
+			this.defaultTokenPicker = defaultTokenPicker;
+		}
 
-        public void Mint(decimal amount, Address to, ITagProperties tagProperties = null)
-        {
-            RequirePositiveAmount(amount);
-            RequireValidAddress(to);
+		public TaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder)
+			=> this.holdersToBalances.ContainsKey(tokenHolder)
+				? this.holdersToBalances[tokenHolder]
+				: new TaggedTokens<TTagType>();
 
-            IDictionary<string, decimal> newTokens = tokenTagger.Tag(to, amount);
-            AddToBalance(newTokens, to);
+		public TaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
 
-            var tokensMintedArgs = new TokensMintedEventArgs(amount, newTokens, to);
-            OnTokensMinted(tokensMintedArgs);
-        }
+		public void Mint(decimal amount, Address to)
+		{
+			if (to == null)
+			{
+				throw new ArgumentNullException(nameof(to));
+			}
 
-        public void Transfer(decimal amount, Address from, Address to, ITagProperties tagProperties = null)
-        {
-            RequirePositiveAmount(amount);
-            RequireValidAddress(from);
-            RequireValidAddress(to);
+			TokensUtility.RequirePositiveAmount(amount);
 
-            if (from.Equals(to))
-            {
-                throw new ArgumentException("Addresses can't transfer to themselves");
-            }
+			TaggedTokens<TTagType> newTokens = this.tokenTagger.Tag(to, amount);
+			this.AddToBalances(newTokens, to);
 
-            IDictionary<string, decimal> tokensToTransfer =
-                tokenTagger.Pick(holdersToTaggedBalances[from], amount, tagProperties);
-            AddToBalance(tokensToTransfer, to);
-            RemoveFromBalance(tokensToTransfer, from);
+			var tokensMintedArgs = new TokensMintedEventArgs<TTagType>(amount, newTokens, to);
+			this.OnTokensMinted(tokensMintedArgs);
+		}
 
-            var transferArgs = new TokensTransferredEventArgs(amount, tokensToTransfer, from, to);
-            OnTokensTransferred(transferArgs);
-        }
+		public void Transfer(decimal amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
+		{
+			if (from == null)
+			{
+				throw new ArgumentNullException(nameof(from));
+			}
 
-        public void Burn(decimal amount, Address from, ITagProperties tagProperties = null)
-        {
-            RequirePositiveAmount(amount);
+			if (to == null)
+			{
+				throw new ArgumentNullException(nameof(to));
+			}
 
-            IDictionary<string, decimal> tokensToBurn =
-                tokenTagger.Pick(holdersToTaggedBalances[from], amount, tagProperties);
-            RemoveFromBalance(tokensToBurn, from);
+			if (from.Equals(to))
+			{
+				throw new ArgumentException("Addresses can't transfer to themselves");
+			}
 
-            var burnArgs = new TokensBurnedEventArgs(amount, tokensToBurn, from);
-            OnTokensBurned(burnArgs);
-        }
+			TokensUtility.RequirePositiveAmount(amount);
 
-        private void RequirePositiveAmount(decimal tokenAmount)
-        {
-            if (tokenAmount <= 0)
-            {
-                throw new NonPositiveTokenAmountException(tokenAmount);
-            }
-        }
+			customPicker = customPicker ?? this.defaultTokenPicker;
 
-        private void RequireValidAddress(Address address)
-        {
-            if (address.Equals(new Address()))
-            {
-                throw new ArgumentException("Null Address used");
-            }
-        }
+			TaggedTokens<TTagType> tokensToTransfer = customPicker.Pick(this.holdersToBalances[from], amount);
+			this.RemoveFromBalances(tokensToTransfer, from);
+			this.AddToBalances(tokensToTransfer, to);
 
-        private void InitialiseBalances(
-            IDictionary<Address, IDictionary<string, decimal>> initialHoldersToBalances)
-        {
-            holdersToTaggedBalances = initialHoldersToBalances;
-            holdersToBalances = new SortedDictionary<Address, decimal>();
-            tagsToTotalBalances = new SortedDictionary<string, decimal>();
-            totalBalance = 0;
+			var transferArgs = new TokensTransferredEventArgs<TTagType>(amount, tokensToTransfer, from, to);
+			this.OnTokensTransferred(transferArgs);
+		}
 
-            foreach ((Address address, IDictionary<string, decimal> tagsToBalances) in holdersToTaggedBalances)
-            {
-                foreach ((string tag, decimal amount) in tagsToBalances)
-                {
-                    tagsToTotalBalances[tag] += amount;
-                    holdersToBalances[address] += amount;
-                    totalBalance += amount;
-                }
-            }
-        }
+		public void Burn(decimal amount, Address from, ITokenPicker<TTagType> customPicker = null)
+		{
+			if (from == null)
+			{
+				throw new ArgumentNullException(nameof(from));
+			}
 
-        private void AddToBalance(IDictionary<string, decimal> newTokens, Address holder)
-        {
-            if (!holdersToTaggedBalances.ContainsKey(holder) || !holdersToBalances.ContainsKey(holder))
-            {
-                holdersToTaggedBalances[holder] = new SortedDictionary<string, decimal>();
-                holdersToBalances[holder] = 0;
-            }
+			TokensUtility.RequirePositiveAmount(amount);
 
-            foreach ((string tag, decimal amount) in newTokens)
-            {
-                RequirePositiveAmount(amount);
-                if (!holdersToTaggedBalances[holder].ContainsKey(tag))
-                {
-                    holdersToTaggedBalances[holder][tag] = 0;
-                }
+			customPicker = customPicker ?? this.defaultTokenPicker;
 
-                if (!tagsToTotalBalances.ContainsKey(tag))
-                {
-                    tagsToTotalBalances[tag] = 0;
-                }
+			TaggedTokens<TTagType> tokensToBurn = customPicker.Pick(this.holdersToBalances[from], amount);
+			this.holdersToBalances[from].RemoveFromBalance(tokensToBurn);
 
-                UpdateBalances(holder, amount, tag);
-            }
-        }
+			var burnArgs = new TokensBurnedEventArgs<TTagType>(amount, tokensToBurn, from);
+			this.OnTokensBurned(burnArgs);
+		}
 
-        private void RemoveFromBalance(IDictionary<string, decimal> tokensToRemove, Address holder)
-        {
-            foreach ((string tag, decimal amount) in tokensToRemove)
-            {
-                RequirePositiveAmount(amount);
+		private void AddToBalances(TaggedTokens<TTagType> tokens, Address holder)
+		{
+			if (!this.holdersToBalances.ContainsKey(holder))
+			{
+				this.holdersToBalances[holder] = new TaggedTokens<TTagType>();
+			}
 
-                if (!tagsToTotalBalances.ContainsKey(tag))
-                {
-                    throw new ArgumentException($"There are no tokens with tag {tag}.");
-                }
+			this.holdersToBalances[holder].AddToBalance(tokens);
+			this.totalBalance.AddToBalance(tokens);
+		}
 
-                if (!holdersToTaggedBalances[holder].ContainsKey(tag))
-                {
-                    throw new InsufficientTokenAmountException(0, amount);
-                }
+		private void RemoveFromBalances(TaggedTokens<TTagType> tokens, Address holder)
+		{
+			this.holdersToBalances[holder].RemoveFromBalance(tokens);
+			this.totalBalance.RemoveFromBalance(tokens);
+		}
 
-                if (amount > holdersToTaggedBalances[holder][tag])
-                {
-                    throw new InsufficientTokenAmountException(holdersToTaggedBalances[holder][tag], amount);
-                }
+		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
+		{
+			this.TokensMinted?.Invoke(this, e);
+		}
 
-                UpdateBalances(holder, -amount, tag);
-            }
-        }
+		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
+		{
+			this.TokensTransferred?.Invoke(this, e);
+		}
 
-        private void UpdateBalances(Address holder, decimal amount, string tokenTag)
-        {
-            holdersToTaggedBalances[holder][tokenTag] += amount;
-            holdersToBalances[holder] += amount;
-            tagsToTotalBalances[tokenTag] += amount;
-            totalBalance += amount;
-        }
-
-        protected virtual void OnTokensMinted(TokensMintedEventArgs e)
-        {
-            TokensMinted?.Invoke(this, e);
-        }
-
-        protected virtual void OnTokensTransferred(TokensTransferredEventArgs e)
-        {
-            TokensTransferred?.Invoke(this, e);
-        }
-
-        protected virtual void OnTokensBurned(TokensBurnedEventArgs e)
-        {
-            TokensBurned?.Invoke(this, e);
-        }
-    }
+		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
+		{
+			this.TokensBurned?.Invoke(this, e);
+		}
+	}
 }

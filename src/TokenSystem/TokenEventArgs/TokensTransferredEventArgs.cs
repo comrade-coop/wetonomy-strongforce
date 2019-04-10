@@ -1,28 +1,30 @@
 using System;
 using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-    public class TokensTransferredEventArgs : EventArgs
-    {
-        public TokensTransferredEventArgs(
-            decimal amount,
-            IDictionary<string, decimal> tokens, Address from,
-            Address to)
-        {
-            Amount = amount;
-            Tokens = tokens;
-            From = from;
-            To = to;
-        }
+	public class TokensTransferredEventArgs<TTagType> : EventArgs
+	{
+		public TokensTransferredEventArgs(
+			decimal amount,
+			TaggedTokens<TTagType> tokens,
+			Address from,
+			Address to)
+		{
+			this.Amount = amount;
+			this.Tokens = tokens;
+			this.From = from;
+			this.To = to;
+		}
 
-        public decimal Amount { get; }
+		public decimal Amount { get; }
 
-        public IDictionary<string, decimal> Tokens { get; }
+		public TaggedTokens<TTagType> Tokens { get; }
 
-        public Address From { get; }
+		public Address From { get; }
 
-        public Address To { get; }
-    }
+		public Address To { get; }
+	}
 }

@@ -4,8 +4,8 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-    public interface ISplitStrategy
-    {
-        void Split(IList<Address> recipients, ITokenManager tokenManager);
-    }
+	public interface ISplitStrategy<TTokenTagType>
+	{
+		void Split(IList<Address> recipients, ITokenManager<TTokenTagType> tokenManager);
+	}
 }
