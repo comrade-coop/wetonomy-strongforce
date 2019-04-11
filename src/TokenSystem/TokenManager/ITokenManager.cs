@@ -1,4 +1,4 @@
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManager
