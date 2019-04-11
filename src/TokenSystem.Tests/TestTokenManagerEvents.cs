@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
 using TokenSystem.TokenEventArgs;
+using TokenSystem.TokenManager;
 using TokenSystem.Tokens;
 using Xunit;
 

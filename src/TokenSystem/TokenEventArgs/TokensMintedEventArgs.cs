@@ -6,7 +6,7 @@ namespace TokenSystem.TokenEventArgs
 {
 	public class TokensMintedEventArgs<TTagType> : EventArgs
 	{
-		public TokensMintedEventArgs(decimal amount, TaggedTokens<TTagType> tokens, Address to)
+		public TokensMintedEventArgs(decimal amount, IReadOnlyTaggedTokens<TTagType> tokens, Address to)
 		{
 			this.Amount = amount;
 			this.Tokens = tokens;
@@ -15,7 +15,7 @@ namespace TokenSystem.TokenEventArgs
 
 		public decimal Amount { get; }
 
-		public TaggedTokens<TTagType> Tokens { get; }
+		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
 
 		public Address To { get; }
 	}

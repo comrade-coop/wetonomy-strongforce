@@ -1,6 +1,6 @@
 using TokenSystem.Exceptions;
 
-namespace TokenSystem.Tokens
+namespace TokenSystem.TokenManager
 {
 	public static class TokensUtility
 	{

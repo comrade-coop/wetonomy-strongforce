@@ -1,13 +1,13 @@
-using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.Tokens;
 
-namespace TokenSystem.Tokens
+namespace TokenSystem.TokenManager
 {
 	public interface ITokenManager<TTagType>
 	{
-		TaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder);
+		IReadOnlyTaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder);
 
-		TaggedTokens<TTagType> TaggedTotalBalance();
+		IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance();
 
 		void Mint(decimal amount, Address to);
 
