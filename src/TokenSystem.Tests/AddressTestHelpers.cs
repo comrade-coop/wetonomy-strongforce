@@ -3,7 +3,7 @@ using ContractsCore;
 
 namespace TokenSystem.Tests
 {
-    public static class AddressHelpers
+    public static class AddressTestHelpers
     {
         public static List<Address> GenerateRandomAddresses(int count)
         {
