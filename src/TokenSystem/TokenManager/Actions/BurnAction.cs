@@ -12,18 +12,18 @@ namespace TokenSystem.TokenManager.Actions
 			Address target,
 			decimal amount,
 			Address from,
-			ITokenPicker<TTokenTagType> pickStrategy = null)
+			ITokenPicker<TTokenTagType> customPicker = null)
 			: base(hash, origin, sender, target)
 		{
 			this.Amount = amount;
 			this.From = from;
-			this.PickStrategy = pickStrategy;
+			this.CustomPicker = customPicker;
 		}
 
 		public decimal Amount { get; }
 
 		public Address From { get; }
 
-		public ITokenPicker<TTokenTagType> PickStrategy { get; }
+		public ITokenPicker<TTokenTagType> CustomPicker { get; }
 	}
 }

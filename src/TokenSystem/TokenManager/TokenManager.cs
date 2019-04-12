@@ -155,29 +155,58 @@ namespace TokenSystem.TokenManager
 			return new object();
 		}
 
-		protected override bool HandleAcceptedAction(Action action)
+		protected override bool HandleReceivedAction(Action action)
 		{
 			switch (action)
 			{
 				case MintAction mintAction:
-					this.Mint(mintAction.Amount, mintAction.To);
+					this.HandleMintAction(mintAction);
 					return true;
 
 				case TransferAction<TTagType> transferAction:
-					this.Transfer(
-						transferAction.Amount,
-						transferAction.From,
-						transferAction.To,
-						transferAction.PickStrategy);
+					this.HandleTransferAction(transferAction);
 					return true;
 
 				case BurnAction<TTagType> burnAction:
-					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
+					this.HandleBurnAction(burnAction);
 					return true;
 
 				default:
 					return false;
 			}
+		}
+
+		private void HandleMintAction(MintAction action)
+		{
+			this.RequirePermission(action);
+			this.Mint(action.Amount, action.To);
+		}
+
+		private void HandleTransferAction(TransferAction<TTagType> action)
+		{
+			if (!action.Sender.Equals(action.From))
+			{
+				this.RequirePermission(action);
+			}
+
+			this.Transfer(
+				action.Amount,
+				action.From,
+				action.To,
+				action.CustomPicker);
+		}
+
+		private void HandleBurnAction(BurnAction<TTagType> action)
+		{
+			if (!action.Sender.Equals(action.From))
+			{
+				this.RequirePermission(action);
+			}
+
+			this.Burn(
+				action.Amount,
+				action.From,
+				action.CustomPicker);
 		}
 	}
 }
