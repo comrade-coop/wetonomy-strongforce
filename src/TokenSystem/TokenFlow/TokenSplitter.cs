@@ -1,32 +1,60 @@
 using System.Collections.Generic;
 using ContractsCore;
+using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManager;
 
 namespace TokenSystem.TokenFlow
 {
-	public class TokenSplitter<TTokenTagType> : RecipientManager
+	public abstract class TokenSplitter<TTokenTagType> : RecipientManager
 	{
-		private readonly TokenManager<TTokenTagType> tokenManager;
-		private readonly ISplitStrategy<TTokenTagType> splitStrategy;
+		protected TokenManager<TTokenTagType> TokenManager { get; }
 
-		public TokenSplitter(TokenManager<TTokenTagType> tokenManager, ISplitStrategy<TTokenTagType> splitStrategy) :
-			this(new List<Address>(), tokenManager, splitStrategy)
+		public TokenSplitter(
+			Address address,
+			TokenManager<TTokenTagType> tokenManager)
+			: this(address, new List<Address>(), tokenManager)
 		{
 		}
 
 		public TokenSplitter(
+			Address address,
 			IList<Address> recipients,
-			TokenManager<TTokenTagType> tokenManager,
-			ISplitStrategy<TTokenTagType> splitStrategy)
-			: base(recipients)
+			TokenManager<TTokenTagType> tokenManager)
+			: base(address, recipients)
 		{
-			this.tokenManager = tokenManager;
-			this.splitStrategy = splitStrategy;
+			this.TokenManager = tokenManager;
+
+			this.TokenManager.TokensMinted += this.OnTokensMinted;
+			this.TokenManager.TokensTransferred += this.OnTokensTransferred;
 		}
 
-		protected void Split()
+		private void OnTokensMinted(object sender, TokensMintedEventArgs<TTokenTagType> mintedEventArgs)
 		{
-			this.splitStrategy.Split(this.Recipients, this.tokenManager);
+			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
+			{
+				return;
+			}
+
+			if (tokenManagerSender.Address.Equals(this.TokenManager.Address) && mintedEventArgs.To.Equals(this.Address))
+			{
+				this.Split(mintedEventArgs.Amount);
+			}
 		}
+
+		private void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
+		{
+			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
+			{
+				return;
+			}
+
+			if (tokenManagerSender.Address.Equals(this.TokenManager.Address)
+			    && transferredEventArgs.To.Equals(this.Address))
+			{
+				this.Split(transferredEventArgs.Amount);
+			}
+		}
+
+		protected abstract void Split(decimal amount);
 	}
 }
