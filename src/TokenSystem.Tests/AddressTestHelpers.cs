@@ -3,18 +3,20 @@ using ContractsCore;
 
 namespace TokenSystem.Tests
 {
-    public static class AddressTestHelpers
-    {
-        public static List<Address> GenerateRandomAddresses(int count)
-        {
-            var addressFactory = new RandomAddressFactory();
-            var generatedAddresses = new List<Address>(count);
-            for (var i = 0; i < count; i++)
-            {
-                generatedAddresses.Add(addressFactory.Create());
-            }
+	public static class AddressTestHelpers
+	{
+		public const int DefaultAddressCount = 20;
 
-            return generatedAddresses;
-        }
-    }
+		public static List<Address> GenerateRandomAddresses(int addressCount = DefaultAddressCount)
+		{
+			var addressFactory = new RandomAddressFactory();
+			var generatedAddresses = new List<Address>(addressCount);
+			for (var i = 0; i < addressCount; i++)
+			{
+				generatedAddresses.Add(addressFactory.Create());
+			}
+
+			return generatedAddresses;
+		}
+	}
 }

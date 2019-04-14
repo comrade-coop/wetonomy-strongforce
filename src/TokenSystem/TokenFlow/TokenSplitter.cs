@@ -29,7 +29,7 @@ namespace TokenSystem.TokenFlow
 			this.TokenManager.TokensTransferred += this.OnTokensTransferred;
 		}
 
-		private void OnTokensMinted(object sender, TokensMintedEventArgs<TTokenTagType> mintedEventArgs)
+		protected virtual void OnTokensMinted(object sender, TokensMintedEventArgs<TTokenTagType> mintedEventArgs)
 		{
 			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
 			{
@@ -42,7 +42,7 @@ namespace TokenSystem.TokenFlow
 			}
 		}
 
-		private void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
+		protected virtual void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
 		{
 			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
 			{
