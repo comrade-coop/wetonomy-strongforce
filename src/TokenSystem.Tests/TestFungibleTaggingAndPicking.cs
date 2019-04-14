@@ -15,7 +15,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100)]
-		public void Tag_WhenPassedValidAddressAndAmount_TagsTokensEvenly(BigInteger amount)
+		public void Tag_WhenPassedValidAddressAndAmount_TagsTokensEvenly(int amount)
 		{
 			IReadOnlyTaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, amount);
 			Assert.Equal(amount, tokens.GetAmountByTag(FungibleTokenTagger.DefaultTokenTag));
@@ -23,7 +23,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(-100)]
-		public void Tag_WhenPassedNegativeAmount_Throws(BigInteger amount)
+		public void Tag_WhenPassedNegativeAmount_Throws(int amount)
 		{
 			Assert.Throws<NonPositiveTokenAmountException>(
 				() => this.fungibleTagger.Tag(this.defaultAddress, amount));
@@ -31,7 +31,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(23, 3)]
-		public void Pick_WhenRequestedLessThanOwnedTokens_ReturnsCorrectAmount(BigInteger mintAmount, BigInteger pickAmount)
+		public void Pick_WhenRequestedLessThanOwnedTokens_ReturnsCorrectAmount(int mintAmount, int pickAmount)
 		{
 			IReadOnlyTaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
 			IReadOnlyTaggedTokens<string> pickedTokens = this.fungiblePicker.Pick(tokens, pickAmount);
@@ -40,9 +40,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(23, 100)]
-		public void Pick_WhenRequestedMoreThanOwnedTokens_Throws(
-			BigInteger mintAmount,
-			BigInteger pickAmount)
+		public void Pick_WhenRequestedMoreThanOwnedTokens_Throws(int mintAmount, int pickAmount)
 		{
 			IReadOnlyTaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
 			Assert.Throws<InsufficientTokenAmountException>(() => this.fungiblePicker.Pick(tokens, pickAmount));
@@ -51,9 +49,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100, -10)]
-		public void Pick_WhenPassedNegativeAmount_Throws(
-			BigInteger mintAmount,
-			BigInteger pickAmount)
+		public void Pick_WhenPassedNegativeAmount_Throws(int mintAmount, int pickAmount)
 		{
 			IReadOnlyTaggedTokens<string> tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
 			Assert.Throws<NonPositiveTokenAmountException>(() => this.fungiblePicker.Pick(tokens, pickAmount));

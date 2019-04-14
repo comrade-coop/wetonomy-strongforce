@@ -39,8 +39,8 @@ namespace TokenSystem.Tests
 
 			this.splitter = new UniformTokenSplitter<string>(
 				this.addressFactory.Create(),
-				this.recipients,
-				this.tokenManager);
+				this.tokenManager,
+				this.recipients);
 
 			this.contractRegistry.RegisterContract(this.tokenManager);
 			this.contractRegistry.RegisterContract(this.splitter);

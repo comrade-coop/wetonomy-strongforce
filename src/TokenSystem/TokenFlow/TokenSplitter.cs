@@ -13,14 +13,14 @@ namespace TokenSystem.TokenFlow
 		public TokenSplitter(
 			Address address,
 			TokenManager<TTokenTagType> tokenManager)
-			: this(address, new List<Address>(), tokenManager)
+			: this(address, tokenManager, new List<Address>())
 		{
 		}
 
 		public TokenSplitter(
 			Address address,
-			IList<Address> recipients,
-			TokenManager<TTokenTagType> tokenManager)
+			TokenManager<TTokenTagType> tokenManager,
+			IList<Address> recipients)
 			: base(address, recipients)
 		{
 			this.TokenManager = tokenManager;
@@ -42,7 +42,8 @@ namespace TokenSystem.TokenFlow
 			}
 		}
 
-		protected virtual void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
+		protected virtual void OnTokensTransferred(object sender,
+			TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
 		{
 			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
 			{

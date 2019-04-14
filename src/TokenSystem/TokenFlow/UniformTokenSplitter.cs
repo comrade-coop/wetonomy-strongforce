@@ -16,9 +16,9 @@ namespace TokenSystem.TokenFlow
 
 		public UniformTokenSplitter(
 			Address address,
-			IList<Address> recipients,
-			TokenManager<TTokenTagType> tokenManager)
-			: base(address, recipients, tokenManager)
+			TokenManager<TTokenTagType> tokenManager,
+			IList<Address> recipients)
+			: base(address, tokenManager, recipients)
 		{
 		}
 
