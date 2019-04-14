@@ -1,10 +1,11 @@
+using System.Numerics;
 using TokenSystem.Exceptions;
 
-namespace TokenSystem.TokenManager
+namespace TokenSystem.Tokens
 {
 	public static class TokensUtility
 	{
-		public static void RequirePositiveAmount(decimal tokenAmount)
+		public static void RequirePositiveAmount(BigInteger tokenAmount)
 		{
 			if (tokenAmount <= 0)
 			{

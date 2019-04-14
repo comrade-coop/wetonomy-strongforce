@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using ContractsCore;
 using TokenSystem.Tokens;
 
@@ -7,7 +8,7 @@ namespace TokenSystem.TokenEventArgs
 	public class TokensTransferredEventArgs<TTagType> : EventArgs
 	{
 		public TokensTransferredEventArgs(
-			decimal amount,
+			BigInteger amount,
 			IReadOnlyTaggedTokens<TTagType> tokens,
 			Address from,
 			Address to)
@@ -18,7 +19,7 @@ namespace TokenSystem.TokenEventArgs
 			this.To = to;
 		}
 
-		public decimal Amount { get; }
+		public BigInteger Amount { get; }
 
 		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
 

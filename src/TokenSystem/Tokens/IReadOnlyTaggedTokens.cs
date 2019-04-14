@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace TokenSystem.Tokens
 {
-	public interface IReadOnlyTaggedTokens<TTagType> : IEnumerable<KeyValuePair<TTagType, decimal>>
+	public interface IReadOnlyTaggedTokens<TTagType> : IEnumerable<KeyValuePair<TTagType, BigInteger>>
 	{
-		decimal GetAmountByTag(TTagType tag);
+		BigInteger GetAmountByTag(TTagType tag);
 
-		decimal TotalTokens { get; }
+		BigInteger TotalTokens { get; }
 	}
 }

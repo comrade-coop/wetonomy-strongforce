@@ -1,3 +1,4 @@
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
@@ -10,7 +11,7 @@ namespace TokenSystem.TokenManager.Actions
 			Address origin,
 			Address sender,
 			Address target,
-			decimal amount,
+			BigInteger amount,
 			Address from,
 			ITokenPicker<TTokenTagType> customPicker = null)
 			: base(hash, origin, sender, target)
@@ -20,7 +21,7 @@ namespace TokenSystem.TokenManager.Actions
 			this.CustomPicker = customPicker;
 		}
 
-		public decimal Amount { get; }
+		public BigInteger Amount { get; }
 
 		public Address From { get; }
 

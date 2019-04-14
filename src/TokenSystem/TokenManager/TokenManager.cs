@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Contracts;
 using ContractsCore.Permissions;
@@ -55,7 +56,7 @@ namespace TokenSystem.TokenManager
 
 		public IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
 
-		private void Mint(decimal amount, Address to)
+		private void Mint(BigInteger amount, Address to)
 		{
 			if (to == null)
 			{
@@ -71,7 +72,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensMinted(tokensMintedArgs);
 		}
 
-		private void Transfer(decimal amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
+		private void Transfer(BigInteger amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{
@@ -100,7 +101,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensTransferred(transferArgs);
 		}
 
-		private void Burn(decimal amount, Address from, ITokenPicker<TTagType> customPicker = null)
+		private void Burn(BigInteger amount, Address from, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{

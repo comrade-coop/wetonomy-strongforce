@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Events;
 using TokenSystem.TokenManager;
@@ -21,9 +22,9 @@ namespace TokenSystem.TokenFlow
 		{
 		}
 
-		protected override void Split(decimal amount)
+		protected override void Split(BigInteger amount)
 		{
-			decimal splitAmount = amount / this.Recipients.Count;
+			BigInteger splitAmount = amount / this.Recipients.Count;
 
 			if (splitAmount <= 0)
 			{
@@ -41,7 +42,7 @@ namespace TokenSystem.TokenFlow
 					this.Address,
 					recipient);
 				this.OnSend(new ActionEventArgs(transferAction));
-			}	
+			}
 		}
 	}
 }

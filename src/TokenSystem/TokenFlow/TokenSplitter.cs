@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManager;
@@ -55,6 +56,6 @@ namespace TokenSystem.TokenFlow
 			}
 		}
 
-		protected abstract void Split(decimal amount);
+		protected abstract void Split(BigInteger amount);
 	}
 }
