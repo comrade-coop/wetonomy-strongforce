@@ -45,16 +45,14 @@ namespace TokenSystem.TokenFlow
 		protected virtual void OnTokensTransferred(object sender,
 			TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
 		{
-			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
+			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender) ||
+			    !tokenManagerSender.Address.Equals(this.TokenManager.Address) ||
+			    !transferredEventArgs.To.Equals(this.Address))
 			{
 				return;
 			}
 
-			if (tokenManagerSender.Address.Equals(this.TokenManager.Address)
-			    && transferredEventArgs.To.Equals(this.Address))
-			{
-				this.Split(transferredEventArgs.Amount);
-			}
+			this.Split(transferredEventArgs.Amount);
 		}
 
 		protected abstract void Split(BigInteger amount);

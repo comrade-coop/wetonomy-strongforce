@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
@@ -10,25 +9,22 @@ using Xunit;
 
 namespace TokenSystem.Tests
 {
-	public class TestSplitter
+	public class TestTokenMinters
 	{
-		private const int RecipientCount = 5;
 		private readonly IAddressFactory addressFactory = new RandomAddressFactory();
-
-		private readonly TokenSplitter<string> splitter;
 		private readonly TokenManager<string> tokenManager;
 		private readonly ContractRegistry contractRegistry;
-		private readonly IList<Address> recipients;
-
+		private readonly IList<Address> addresses;
 		private readonly Address permissionManager;
 
-		public TestSplitter()
+		public TestTokenMinters()
 		{
-			this.recipients = AddressTestUtils.GenerateRandomAddresses(RecipientCount);
-
 			this.contractRegistry = new ContractRegistry();
 
-			this.permissionManager = this.addressFactory.Create();
+			this.addresses = AddressTestUtils.GenerateRandomAddresses();
+
+			this.permissionManager = this.addresses[0];
+
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.tokenManager = new TokenManager<string>(
@@ -37,13 +33,7 @@ namespace TokenSystem.Tests
 				tokenTagger,
 				tokenPicker);
 
-			this.splitter = new UniformTokenSplitter<string>(
-				this.addressFactory.Create(),
-				this.tokenManager,
-				this.recipients);
-
 			this.contractRegistry.RegisterContract(this.tokenManager);
-			this.contractRegistry.RegisterContract(this.splitter);
 
 			var mintPermission = new AddPermissionAction(
 				string.Empty,
@@ -67,56 +57,53 @@ namespace TokenSystem.Tests
 			this.contractRegistry.HandleAction(transferPermission);
 		}
 
-		[Theory]
-		[InlineData(100)]
-		public void Mint_WhenMintingToSplitter_ShouldSplitToRecipients(int splitAmount)
+		[Fact]
+		public void Burn_WhenUsingUniformOnBurnMinter_MintsCorrectAmountToRecipients()
 		{
+			IList<Address> receivers = AddressTestUtils.GenerateRandomAddresses(5);
+			const int expectedMintAmount = 100;
+			var minter = new UniformOnBurnTokenMinter<string>(
+				this.addressFactory.Create(),
+				this.tokenManager,
+				receivers);
+
+			this.contractRegistry.RegisterContract(minter);
+
+			var mintPermissionAction = new AddPermissionAction(
+				string.Empty,
+				this.permissionManager,
+				this.permissionManager,
+				this.tokenManager.Address,
+				minter.Address,
+				new Permission(typeof(MintAction)));
+
+			this.contractRegistry.HandleAction(mintPermissionAction);
+
+			Address burnAddress = this.addresses[3];
+
+			int burnAmount = expectedMintAmount * receivers.Count;
+
 			var mintAction = new MintAction(
 				string.Empty,
 				this.permissionManager,
 				this.permissionManager,
 				this.tokenManager.Address,
-				splitAmount,
-				this.splitter.Address);
-			this.contractRegistry.HandleAction(mintAction);
-
-			foreach (Address recipient in this.recipients)
-			{
-				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalTokens;
-				Assert.Equal(expectedBalance, actualBalance);
-			}
-		}
-
-		[Theory]
-		[InlineData(100)]
-		public void Transfer_WhenTransferringToSplitter_ShouldSplitToRecipients(int splitAmount)
-		{
-			var mintAction = new MintAction(
+				burnAmount,
+				burnAddress);
+			var burnAction = new BurnAction<string>(
 				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
+				this.addresses[3],
+				this.addresses[3],
 				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager);
-
-			var transferAction = new TransferAction<string>(
-				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
-				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager,
-				this.splitter.Address);
+				burnAmount,
+				burnAddress);
 
 			this.contractRegistry.HandleAction(mintAction);
-			this.contractRegistry.HandleAction(transferAction);
+			this.contractRegistry.HandleAction(burnAction);
 
-			foreach (Address recipient in this.recipients)
+			foreach (Address address in receivers)
 			{
-				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalTokens;
-				Assert.Equal(expectedBalance, actualBalance);
+				Assert.Equal(expectedMintAmount, this.tokenManager.TaggedBalanceOf(address).TotalTokens);
 			}
 		}
 	}

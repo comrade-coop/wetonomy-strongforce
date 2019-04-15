@@ -3,7 +3,7 @@ using ContractsCore;
 
 namespace TokenSystem.Tests
 {
-	public static class AddressTestHelpers
+	public static class AddressTestUtils
 	{
 		public const int DefaultAddressCount = 20;
 

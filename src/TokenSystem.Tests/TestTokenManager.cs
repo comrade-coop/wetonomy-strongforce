@@ -20,7 +20,7 @@ namespace TokenSystem.Tests
 		private readonly TokenManager<string> tokenManager;
 		private readonly ContractRegistry contractRegistry;
 		private readonly Address permissionManager;
-		private readonly List<Address> addresses = AddressTestHelpers.GenerateRandomAddresses(AddressesCount);
+		private readonly List<Address> addresses = AddressTestUtils.GenerateRandomAddresses(AddressesCount);
 
 		public TestTokenManager()
 		{

@@ -11,7 +11,7 @@ namespace TokenSystem.Tests
 	{
 		private readonly FungibleTokenTagger fungibleTagger = new FungibleTokenTagger();
 		private readonly FungibleTokenPicker fungiblePicker = new FungibleTokenPicker();
-		private readonly Address defaultAddress = AddressTestHelpers.GenerateRandomAddresses(1)[0];
+		private readonly Address defaultAddress = AddressTestUtils.GenerateRandomAddresses(1)[0];
 
 		[Theory]
 		[InlineData(100)]
