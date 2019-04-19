@@ -1,22 +1,25 @@
 using System.Collections.Generic;
 using TokenSystem.Exceptions;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.Tokens;
 
-namespace TokenSystem.Tokens
+namespace TokenSystem.TokenManager
 {
 	public class FungibleTokenTagger : ITokenTagger<string>
 	{
 		public const string DefaultTokenTag = "FungibleToken";
 
-		public TaggedTokens<string> Tag(Address owner, decimal amount)
+		public IReadOnlyTaggedTokens<string> Tag(Address owner, decimal amount)
 		{
 			if (amount < 0)
 			{
 				throw new NonPositiveTokenAmountException(amount);
 			}
 
-			var tokens = new TaggedTokens<string>();
-			tokens.AddToBalance(DefaultTokenTag, amount);
+			var tokens = new ReadOnlyTaggedTokens<string>(new SortedDictionary<string, decimal>
+			{
+				[DefaultTokenTag] = amount
+			});
 
 			return tokens;
 		}

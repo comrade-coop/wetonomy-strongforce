@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using TokenSystem.Exceptions;
+using TokenSystem.Tokens;
 
-namespace TokenSystem.Tokens
+namespace TokenSystem.TokenManager
 {
 	public class FungibleTokenPicker : ITokenPicker<string>
 	{
-		public TaggedTokens<string> Pick(TaggedTokens<string> tokens, decimal amount)
+		public IReadOnlyTaggedTokens<string> Pick(IReadOnlyTaggedTokens<string> tokens, decimal amount)
 		{
 			if (amount < 0)
 			{
@@ -18,8 +20,10 @@ namespace TokenSystem.Tokens
 				throw new InsufficientTokenAmountException(availableTokens, amount);
 			}
 
-			var pickedTokens = new TaggedTokens<string>();
-			pickedTokens.AddToBalance(FungibleTokenTagger.DefaultTokenTag, amount);
+			var pickedTokens = new ReadOnlyTaggedTokens<string>(new SortedDictionary<string, decimal>
+			{
+				[FungibleTokenTagger.DefaultTokenTag] = amount
+			});
 
 			return pickedTokens;
 		}

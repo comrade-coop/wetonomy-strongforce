@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TokenSystem.Exceptions;
 using TokenSystem.StrongForceMocks;
+using TokenSystem.TokenManager;
 using TokenSystem.Tokens;
 using Xunit;
 
@@ -19,13 +20,13 @@ namespace TokenSystem.Tests
 		public void ShouldHaveAllInitialBalancesAsZero()
 		{
 			var tokenManager = new TokenManager<string>(this.tokenTagger, this.tokenPicker);
-			TaggedTokens<string> taggedBalance = tokenManager.TaggedTotalBalance();
+			IReadOnlyTaggedTokens<string> taggedBalance = tokenManager.TaggedTotalBalance();
 
 			Assert.Equal(0, taggedBalance.TotalTokens);
 
 			this.addresses.ForEach(address =>
 			{
-				TaggedTokens<string> balance = tokenManager.TaggedBalanceOf(address);
+				IReadOnlyTaggedTokens<string> balance = tokenManager.TaggedBalanceOf(address);
 				Assert.Equal(0, balance.TotalTokens);
 			});
 		}
@@ -70,8 +71,8 @@ namespace TokenSystem.Tests
 
 			tokenManager.Transfer(transferAmount, from, to);
 
-			TaggedTokens<string> balanceFromAfterTransfer = tokenManager.TaggedBalanceOf(from);
-			TaggedTokens<string> balanceOfToAfterTransfer = tokenManager.TaggedBalanceOf(to);
+			IReadOnlyTaggedTokens<string> balanceFromAfterTransfer = tokenManager.TaggedBalanceOf(from);
+			IReadOnlyTaggedTokens<string> balanceOfToAfterTransfer = tokenManager.TaggedBalanceOf(to);
 
 			Assert.Equal(balanceFromBeforeTransfer - transferAmount,
 				balanceFromAfterTransfer.TotalTokens);
@@ -131,7 +132,7 @@ namespace TokenSystem.Tests
 			decimal balanceBeforeBurn = tokenManager.TaggedBalanceOf(address).TotalTokens;
 
 			tokenManager.Burn(burnAmount, address);
-			TaggedTokens<string> balanceAfterBurn = tokenManager.TaggedBalanceOf(address);
+			IReadOnlyTaggedTokens<string> balanceAfterBurn = tokenManager.TaggedBalanceOf(address);
 
 			Assert.Equal(balanceBeforeBurn - burnAmount, balanceAfterBurn.TotalTokens);
 		}

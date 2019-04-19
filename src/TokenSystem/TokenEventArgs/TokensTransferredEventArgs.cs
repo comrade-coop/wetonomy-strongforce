@@ -9,7 +9,7 @@ namespace TokenSystem.TokenEventArgs
 	{
 		public TokensTransferredEventArgs(
 			decimal amount,
-			TaggedTokens<TTagType> tokens,
+			IReadOnlyTaggedTokens<TTagType> tokens,
 			Address from,
 			Address to)
 		{
@@ -21,7 +21,7 @@ namespace TokenSystem.TokenEventArgs
 
 		public decimal Amount { get; }
 
-		public TaggedTokens<TTagType> Tokens { get; }
+		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
 
 		public Address From { get; }
 

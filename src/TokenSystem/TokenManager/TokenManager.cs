@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using TokenSystem.StrongForceMocks;
 using TokenSystem.TokenEventArgs;
+using TokenSystem.Tokens;
 
-namespace TokenSystem.Tokens
+namespace TokenSystem.TokenManager
 {
 	public class TokenManager<TTagType> : ITokenManager<TTagType>
 	{
@@ -11,8 +12,8 @@ namespace TokenSystem.Tokens
 		private readonly ITokenPicker<TTagType> defaultTokenPicker;
 
 
-		private readonly IDictionary<Address, TaggedTokens<TTagType>> holdersToBalances;
-		private readonly TaggedTokens<TTagType> totalBalance;
+		private readonly IDictionary<Address, ITaggedTokens<TTagType>> holdersToBalances;
+		private readonly ITaggedTokens<TTagType> totalBalance;
 
 		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
 		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
@@ -23,17 +24,17 @@ namespace TokenSystem.Tokens
 			ITokenPicker<TTagType> defaultTokenPicker)
 		{
 			this.tokenTagger = tokenTagger;
-			this.holdersToBalances = new Dictionary<Address, TaggedTokens<TTagType>>();
+			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
 			this.totalBalance = new TaggedTokens<TTagType>();
 			this.defaultTokenPicker = defaultTokenPicker;
 		}
 
-		public TaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder)
+		public IReadOnlyTaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder)
 			=> this.holdersToBalances.ContainsKey(tokenHolder)
 				? this.holdersToBalances[tokenHolder]
 				: new TaggedTokens<TTagType>();
 
-		public TaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
+		public IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
 
 		public void Mint(decimal amount, Address to)
 		{
@@ -44,7 +45,7 @@ namespace TokenSystem.Tokens
 
 			TokensUtility.RequirePositiveAmount(amount);
 
-			TaggedTokens<TTagType> newTokens = this.tokenTagger.Tag(to, amount);
+			IReadOnlyTaggedTokens<TTagType> newTokens = this.tokenTagger.Tag(to, amount);
 			this.AddToBalances(newTokens, to);
 
 			var tokensMintedArgs = new TokensMintedEventArgs<TTagType>(amount, newTokens, to);
@@ -72,7 +73,7 @@ namespace TokenSystem.Tokens
 
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
-			TaggedTokens<TTagType> tokensToTransfer = customPicker.Pick(this.holdersToBalances[from], amount);
+			IReadOnlyTaggedTokens<TTagType> tokensToTransfer = customPicker.Pick(this.holdersToBalances[from], amount);
 			this.RemoveFromBalances(tokensToTransfer, from);
 			this.AddToBalances(tokensToTransfer, to);
 
@@ -91,14 +92,14 @@ namespace TokenSystem.Tokens
 
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
-			TaggedTokens<TTagType> tokensToBurn = customPicker.Pick(this.holdersToBalances[from], amount);
+			IReadOnlyTaggedTokens<TTagType> tokensToBurn = customPicker.Pick(this.holdersToBalances[from], amount);
 			this.holdersToBalances[from].RemoveFromBalance(tokensToBurn);
 
 			var burnArgs = new TokensBurnedEventArgs<TTagType>(amount, tokensToBurn, from);
 			this.OnTokensBurned(burnArgs);
 		}
 
-		private void AddToBalances(TaggedTokens<TTagType> tokens, Address holder)
+		private void AddToBalances(IReadOnlyTaggedTokens<TTagType> tokens, Address holder)
 		{
 			if (!this.holdersToBalances.ContainsKey(holder))
 			{
@@ -109,7 +110,7 @@ namespace TokenSystem.Tokens
 			this.totalBalance.AddToBalance(tokens);
 		}
 
-		private void RemoveFromBalances(TaggedTokens<TTagType> tokens, Address holder)
+		private void RemoveFromBalances(IReadOnlyTaggedTokens<TTagType> tokens, Address holder)
 		{
 			this.holdersToBalances[holder].RemoveFromBalance(tokens);
 			this.totalBalance.RemoveFromBalance(tokens);
