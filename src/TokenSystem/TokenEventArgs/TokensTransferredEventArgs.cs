@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
 using ContractsCore;
 using TokenSystem.Tokens;

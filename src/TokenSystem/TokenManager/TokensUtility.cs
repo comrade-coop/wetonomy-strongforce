@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using TokenSystem.Exceptions;
 
 namespace TokenSystem.TokenManager

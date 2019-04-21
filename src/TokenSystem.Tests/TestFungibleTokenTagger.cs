@@ -1,7 +1,9 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using ContractsCore;
-using TokenSystem.Tokens;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenManager;
+using TokenSystem.Tokens;
 using Xunit;
 
 namespace TokenSystem.Tests

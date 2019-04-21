@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using ContractsCore;
@@ -116,9 +118,11 @@ namespace TokenSystem.Tests
 			IReadOnlyTaggedTokens<string> balanceFromAfterTransfer = this.tokenManager.TaggedBalanceOf(from);
 			IReadOnlyTaggedTokens<string> balanceOfToAfterTransfer = this.tokenManager.TaggedBalanceOf(to);
 
-			Assert.Equal(balanceFromBeforeTransfer - transferAmount,
+			Assert.Equal(
+				balanceFromBeforeTransfer - transferAmount,
 				balanceFromAfterTransfer.TotalTokens);
-			Assert.Equal(balanceToBeforeTransfer + transferAmount,
+			Assert.Equal(
+				balanceToBeforeTransfer + transferAmount,
 				balanceOfToAfterTransfer.TotalTokens);
 		}
 
@@ -203,7 +207,7 @@ namespace TokenSystem.Tests
 		public void ShouldRaiseTokensMintedEventCorrectly(decimal mintAmount)
 		{
 			Address to = this.addresses[0];
-			this.tokenManager.TokensMinted += delegate(object sender, TokensMintedEventArgs<string> args)
+			this.tokenManager.TokensMinted += (sender, args) =>
 			{
 				Assert.Equal(mintAmount, args.Amount);
 				Assert.Equal(to, args.To);
@@ -219,7 +223,7 @@ namespace TokenSystem.Tests
 			Address from = this.addresses[0];
 			Address to = this.addresses[1];
 
-			this.tokenManager.TokensTransferred += delegate(object sender, TokensTransferredEventArgs<string> args)
+			this.tokenManager.TokensTransferred += (sender, args) =>
 			{
 				Assert.Equal(transferAmount, args.Amount);
 				Assert.Equal(from, args.From);
@@ -236,7 +240,7 @@ namespace TokenSystem.Tests
 		{
 			Address from = this.addresses[0];
 
-			this.tokenManager.TokensBurned += delegate(object sender, TokensBurnedEventArgs<string> args)
+			this.tokenManager.TokensBurned += (sender, args) =>
 			{
 				Assert.Equal(burnAmount, args.Amount);
 				Assert.Equal(from, args.From);
@@ -254,8 +258,7 @@ namespace TokenSystem.Tests
 				this.permissionManager,
 				this.tokenManager.Address,
 				amount,
-				receiver
-			);
+				receiver);
 			this.contractRegistry.HandleAction(mintAction);
 		}
 
@@ -273,8 +276,7 @@ namespace TokenSystem.Tests
 				amount,
 				from,
 				to,
-				tokenPicker
-			);
+				tokenPicker);
 			this.contractRegistry.HandleAction(transferAction);
 		}
 
@@ -290,8 +292,7 @@ namespace TokenSystem.Tests
 				this.tokenManager.Address,
 				amount,
 				from,
-				tokenPicker
-			);
+				tokenPicker);
 			this.contractRegistry.HandleAction(burnAction);
 		}
 	}

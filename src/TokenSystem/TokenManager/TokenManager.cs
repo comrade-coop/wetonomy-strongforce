@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using ContractsCore;
@@ -15,19 +17,15 @@ namespace TokenSystem.TokenManager
 		private readonly ITokenTagger<TTagType> tokenTagger;
 		private readonly ITokenPicker<TTagType> defaultTokenPicker;
 
-
 		private readonly IDictionary<Address, ITaggedTokens<TTagType>> holdersToBalances;
 		private readonly ITaggedTokens<TTagType> totalBalance;
-
-		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
-		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
-		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
 
 		public TokenManager(
 			Address address,
 			Address permissionManager,
 			ITokenTagger<TTagType> tokenTagger,
-			ITokenPicker<TTagType> defaultTokenPicker) : base(address, permissionManager)
+			ITokenPicker<TTagType> defaultTokenPicker)
+			: base(address, permissionManager)
 		{
 			this.tokenTagger = tokenTagger;
 			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
@@ -40,7 +38,8 @@ namespace TokenSystem.TokenManager
 			Address permissionManager,
 			AccessControlList acl,
 			ITokenTagger<TTagType> tokenTagger,
-			ITokenPicker<TTagType> defaultTokenPicker) : base(address, permissionManager, acl)
+			ITokenPicker<TTagType> defaultTokenPicker)
+			: base(address, permissionManager, acl)
 		{
 			this.tokenTagger = tokenTagger;
 			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
@@ -48,12 +47,63 @@ namespace TokenSystem.TokenManager
 			this.defaultTokenPicker = defaultTokenPicker;
 		}
 
+		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
+
+		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
+
+		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
+
 		public IReadOnlyTaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder)
 			=> this.holdersToBalances.ContainsKey(tokenHolder)
 				? this.holdersToBalances[tokenHolder]
 				: new TaggedTokens<TTagType>();
 
 		public IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
+
+		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
+		{
+			this.TokensMinted?.Invoke(this, e);
+		}
+
+		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
+		{
+			this.TokensTransferred?.Invoke(this, e);
+		}
+
+		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
+		{
+			this.TokensBurned?.Invoke(this, e);
+		}
+
+		protected override object GetState()
+		{
+			return new object();
+		}
+
+		protected override bool HandleAcceptedAction(Action action)
+		{
+			switch (action)
+			{
+				case MintAction mintAction:
+					this.Mint(mintAction.Amount, mintAction.To);
+					return true;
+
+				case TransferAction<TTagType> transferAction:
+					this.Transfer(
+						transferAction.Amount,
+						transferAction.From,
+						transferAction.To,
+						transferAction.PickStrategy);
+					return true;
+
+				case BurnAction<TTagType> burnAction:
+					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
+					return true;
+
+				default:
+					return false;
+			}
+		}
 
 		private void Mint(decimal amount, Address to)
 		{
@@ -133,51 +183,6 @@ namespace TokenSystem.TokenManager
 		{
 			this.holdersToBalances[holder].RemoveFromBalance(tokens);
 			this.totalBalance.RemoveFromBalance(tokens);
-		}
-
-		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
-		{
-			this.TokensMinted?.Invoke(this, e);
-		}
-
-		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
-		{
-			this.TokensTransferred?.Invoke(this, e);
-		}
-
-		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
-		{
-			this.TokensBurned?.Invoke(this, e);
-		}
-
-		protected override object GetState()
-		{
-			return new object();
-		}
-
-		protected override bool HandleAcceptedAction(Action action)
-		{
-			switch (action)
-			{
-				case MintAction mintAction:
-					this.Mint(mintAction.Amount, mintAction.To);
-					return true;
-
-				case TransferAction<TTagType> transferAction:
-					this.Transfer(
-						transferAction.Amount,
-						transferAction.From,
-						transferAction.To,
-						transferAction.PickStrategy);
-					return true;
-
-				case BurnAction<TTagType> burnAction:
-					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
-					return true;
-
-				default:
-					return false;
-			}
 		}
 	}
 }

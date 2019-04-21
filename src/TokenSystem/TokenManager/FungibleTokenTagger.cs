@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections.Generic;
 using ContractsCore;
 using TokenSystem.Exceptions;
@@ -18,7 +20,7 @@ namespace TokenSystem.TokenManager
 
 			var tokens = new ReadOnlyTaggedTokens<string>(new SortedDictionary<string, decimal>
 			{
-				[DefaultTokenTag] = amount
+				[DefaultTokenTag] = amount,
 			});
 
 			return tokens;

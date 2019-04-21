@@ -1,27 +1,27 @@
 {
-    "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
-    "settings": {
-        "documentationRules": {
-            "companyName": "Comrade Coop",
-            "xmlHeader": false,
-            "fileNamingConvention": "metadata"
-        },
-        "layoutRules": {
-            "newlineAtEndOfFile": "omit"
-        },
-        "indentation": {
-            "useTabs": true,
-            "indentationSize": 0
-        },
-        "orderingRules": {
-            "usingDirectivesPlacement": "outsideNamespace",
-            "blankLinesBetweenUsingGroups": "omit"
-        },
-        "maintainabilityRules": {
-            "topLevelTypes": [
-                "class",
-                "interface"
-            ]
-        }                
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "companyName": "Comrade Coop",
+      "xmlHeader": false,
+      "fileNamingConvention": "stylecop"
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "omit"
+    },
+    "indentation": {
+      "useTabs": true,
+      "indentationSize": 0
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace",
+      "blankLinesBetweenUsingGroups": "omit"
+    },
+    "maintainabilityRules": {
+      "topLevelTypes": [
+        "class",
+        "interface"
+      ]
     }
+  }
 }

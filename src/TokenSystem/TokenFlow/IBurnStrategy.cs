@@ -1,7 +1,8 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 namespace TokenSystem.TokenFlow
 {
-    public interface IBurnStrategy
-    {
-        
-    }
+	public interface IBurnStrategy
+	{
+	}
 }
