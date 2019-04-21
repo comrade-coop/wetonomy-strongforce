@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
@@ -20,8 +21,8 @@ namespace TokenSystem.Tests
 
 		private readonly TokenManager<string> tokenManager;
 		private readonly ContractRegistry contractRegistry;
-		private readonly List<Address> addresses = AddressTestHelpers.GenerateRandomAddresses(AddressesCount);
 		private readonly Address permissionManager;
+		private readonly List<Address> addresses = AddressTestUtils.GenerateRandomAddresses(AddressesCount);
 
 		public TestTokenManager()
 		{
@@ -65,10 +66,9 @@ namespace TokenSystem.Tests
 		}
 
 		[Fact]
-		public void ShouldHaveAllInitialBalancesAsZero()
+		public void TaggedBalance_WhenTokenManagerHasBeenInstantiated_ShouldHaveAllBalancesToZero()
 		{
 			IReadOnlyTaggedTokens<string> taggedBalance = this.tokenManager.TaggedTotalBalance();
-
 			Assert.Equal(0, taggedBalance.TotalTokens);
 
 			this.addresses.ForEach(address =>
@@ -80,8 +80,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100)]
-		[InlineData(9999999999999999999)]
-		public void ShouldMintTokensCorrectly(decimal amount)
+		public void Mint_WhenPassedValidAmountAndAddresses_MintsTokensCorrectly(int amount)
 		{
 			Address receiver = this.addresses[0];
 
@@ -94,7 +93,7 @@ namespace TokenSystem.Tests
 		[Theory]
 		[InlineData(0)]
 		[InlineData(-100)]
-		public void ShouldThrowWhenAttemptingToMintNonPositiveTokenAmounts(decimal amount)
+		public void Mint_WhenPassedNonPositiveAmount_Throws(int amount)
 		{
 			Address receiver = this.addresses[0];
 			Assert.Throws<NonPositiveTokenAmountException>(() => this.MintTokens(amount, receiver));
@@ -102,7 +101,9 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(1000, 50)]
-		public void ShouldTransferTokensCorrectly(decimal mintAmount, decimal transferAmount)
+		public void Transfer_WhenPassedValidAmount_TransfersTokensCorrectly(
+			int mintAmount,
+			int transferAmount)
 		{
 			Address from = this.addresses[0];
 			Address to = this.addresses[1];
@@ -110,8 +111,8 @@ namespace TokenSystem.Tests
 			this.MintTokens(mintAmount, from);
 			this.MintTokens(mintAmount, to);
 
-			decimal balanceFromBeforeTransfer = this.tokenManager.TaggedBalanceOf(from).TotalTokens;
-			decimal balanceToBeforeTransfer = this.tokenManager.TaggedBalanceOf(to).TotalTokens;
+			BigInteger balanceFromBeforeTransfer = this.tokenManager.TaggedBalanceOf(from).TotalTokens;
+			BigInteger balanceToBeforeTransfer = this.tokenManager.TaggedBalanceOf(to).TotalTokens;
 
 			this.TransferTokens(transferAmount, from, to);
 
@@ -129,7 +130,7 @@ namespace TokenSystem.Tests
 		[Theory]
 		[InlineData(0)]
 		[InlineData(-234)]
-		public void ShouldThrowWhenAttemptingToTransferNonPositiveAmounts(decimal transferAmount)
+		public void Transfer_WhenPassedNonPositiveAmount_Throws(int transferAmount)
 		{
 			Address from = this.addresses[0];
 			Address to = this.addresses[1];
@@ -140,7 +141,9 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100, 5000)]
-		public void ShouldThrowWhenAttemptingToTransferMoreThanOwnedTokens(decimal mintAmount, decimal transferAmount)
+		public void Transfer_WhenPassedMoreThanOwned_Throws(
+			int mintAmount,
+			int transferAmount)
 		{
 			Address from = this.addresses[0];
 			Address to = this.addresses[1];
@@ -152,11 +155,11 @@ namespace TokenSystem.Tests
 		}
 
 		[Fact]
-		public void ShouldThrowWhenSenderAttemptingToTransferToHimself()
+		public void Transfer_WhenSenderAttemptsToTransferToHimself_Throws()
 		{
 			Address from = this.addresses[0];
-			const decimal mintAmount = 100;
-			const decimal transferAmount = 50;
+			int mintAmount = 100;
+			int transferAmount = 50;
 
 			this.MintTokens(mintAmount, from);
 
@@ -166,12 +169,12 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100, 90)]
-		public void ShouldBurnTokensCorrectly(decimal mintAmount, decimal burnAmount)
+		public void Burn_WhenPassedValidArguments_BurnsCorrectly(int mintAmount, int burnAmount)
 		{
 			Address address = this.addresses[0];
 
 			this.MintTokens(mintAmount, address);
-			decimal balanceBeforeBurn = this.tokenManager.TaggedBalanceOf(address).TotalTokens;
+			BigInteger balanceBeforeBurn = this.tokenManager.TaggedBalanceOf(address).TotalTokens;
 
 			this.BurnTokens(burnAmount, address);
 
@@ -183,7 +186,7 @@ namespace TokenSystem.Tests
 		[Theory]
 		[InlineData(0)]
 		[InlineData(-1000)]
-		public void ShouldThrowWhenAttemptingToBurnNonPositiveTokenAmounts(decimal burnAmount)
+		public void Burn_WhenPassedNonPositiveAmounts_Throws(int burnAmount)
 		{
 			Address address = this.addresses[0];
 			Assert.Throws<NonPositiveTokenAmountException>(
@@ -192,7 +195,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100, 110)]
-		public void ShouldThrowWhenAttemptingToBurnMoreThanOwnedTokenAmount(decimal mintAmount, decimal burnAmount)
+		public void Burn_WhenAttemptingToBurnMoreThanOwned_Throws(int mintAmount, int burnAmount)
 		{
 			Address address = this.addresses[0];
 
@@ -204,7 +207,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(1000)]
-		public void ShouldRaiseTokensMintedEventCorrectly(decimal mintAmount)
+		public void Mint_RaisesEvent(int mintAmount)
 		{
 			Address to = this.addresses[0];
 			this.tokenManager.TokensMinted += (sender, args) =>
@@ -218,7 +221,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(1000, 100)]
-		public void ShouldRaiseTokensTransferredEventCorrectly(decimal mintAmount, decimal transferAmount)
+		public void Transfer_RaisesEvent(int mintAmount, int transferAmount)
 		{
 			Address from = this.addresses[0];
 			Address to = this.addresses[1];
@@ -236,7 +239,7 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(1000, 100)]
-		public void ShouldRaiseTokensBurnedEventCorrectly(decimal mintAmount, decimal burnAmount)
+		public void Burn_RaisesEvent(int mintAmount, int burnAmount)
 		{
 			Address from = this.addresses[0];
 
@@ -250,7 +253,7 @@ namespace TokenSystem.Tests
 			this.BurnTokens(burnAmount, from);
 		}
 
-		private void MintTokens(decimal amount, Address receiver)
+		private void MintTokens(BigInteger amount, Address receiver)
 		{
 			var mintAction = new MintAction(
 				string.Empty,
@@ -263,7 +266,7 @@ namespace TokenSystem.Tests
 		}
 
 		private void TransferTokens(
-			decimal amount,
+			BigInteger amount,
 			Address from,
 			Address to,
 			ITokenPicker<string> tokenPicker = null)
@@ -281,7 +284,7 @@ namespace TokenSystem.Tests
 		}
 
 		private void BurnTokens(
-			decimal amount,
+			int amount,
 			Address from,
 			ITokenPicker<string> tokenPicker = null)
 		{
