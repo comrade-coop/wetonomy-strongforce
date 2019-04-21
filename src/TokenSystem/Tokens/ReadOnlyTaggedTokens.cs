@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections;
 using System.Collections.Generic;
 using TokenSystem.Exceptions;

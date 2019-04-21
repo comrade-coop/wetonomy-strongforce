@@ -1,4 +1,6 @@
-using TokenSystem.StrongForceMocks;
+// Copyright (c) Comrade Coop. All rights reserved.
+
+using ContractsCore;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManager

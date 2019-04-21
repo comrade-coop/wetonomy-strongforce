@@ -1,8 +1,9 @@
-using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
-using TokenSystem.Tokens;
+// Copyright (c) Comrade Coop. All rights reserved.
+
+using ContractsCore;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenManager;
+using TokenSystem.Tokens;
 using Xunit;
 
 namespace TokenSystem.Tests

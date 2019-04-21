@@ -1,33 +1,57 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
+using ContractsCore.Contracts;
+using ContractsCore.Permissions;
 using TokenSystem.TokenEventArgs;
+using TokenSystem.TokenManager.Actions;
 using TokenSystem.Tokens;
+using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenManager
 {
-	public class TokenManager<TTagType> : ITokenManager<TTagType>
+	public class TokenManager<TTagType> : PermittedContract, ITokenManager<TTagType>
 	{
 		private readonly ITokenTagger<TTagType> tokenTagger;
 		private readonly ITokenPicker<TTagType> defaultTokenPicker;
 
-
 		private readonly IDictionary<Address, ITaggedTokens<TTagType>> holdersToBalances;
 		private readonly ITaggedTokens<TTagType> totalBalance;
 
-		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
-		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
-		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
-
 		public TokenManager(
+			Address address,
+			Address permissionManager,
 			ITokenTagger<TTagType> tokenTagger,
 			ITokenPicker<TTagType> defaultTokenPicker)
+			: base(address, permissionManager)
 		{
 			this.tokenTagger = tokenTagger;
 			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
 			this.totalBalance = new TaggedTokens<TTagType>();
 			this.defaultTokenPicker = defaultTokenPicker;
 		}
+
+		public TokenManager(
+			Address address,
+			Address permissionManager,
+			AccessControlList acl,
+			ITokenTagger<TTagType> tokenTagger,
+			ITokenPicker<TTagType> defaultTokenPicker)
+			: base(address, permissionManager, acl)
+		{
+			this.tokenTagger = tokenTagger;
+			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
+			this.totalBalance = new TaggedTokens<TTagType>();
+			this.defaultTokenPicker = defaultTokenPicker;
+		}
+
+		public event EventHandler<TokensMintedEventArgs<TTagType>> TokensMinted;
+
+		public event EventHandler<TokensTransferredEventArgs<TTagType>> TokensTransferred;
+
+		public event EventHandler<TokensBurnedEventArgs<TTagType>> TokensBurned;
 
 		public IReadOnlyTaggedTokens<TTagType> TaggedBalanceOf(Address tokenHolder)
 			=> this.holdersToBalances.ContainsKey(tokenHolder)
@@ -36,7 +60,52 @@ namespace TokenSystem.TokenManager
 
 		public IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
 
-		public void Mint(decimal amount, Address to)
+		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
+		{
+			this.TokensMinted?.Invoke(this, e);
+		}
+
+		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
+		{
+			this.TokensTransferred?.Invoke(this, e);
+		}
+
+		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
+		{
+			this.TokensBurned?.Invoke(this, e);
+		}
+
+		protected override object GetState()
+		{
+			return new object();
+		}
+
+		protected override bool HandleAcceptedAction(Action action)
+		{
+			switch (action)
+			{
+				case MintAction mintAction:
+					this.Mint(mintAction.Amount, mintAction.To);
+					return true;
+
+				case TransferAction<TTagType> transferAction:
+					this.Transfer(
+						transferAction.Amount,
+						transferAction.From,
+						transferAction.To,
+						transferAction.PickStrategy);
+					return true;
+
+				case BurnAction<TTagType> burnAction:
+					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+		private void Mint(decimal amount, Address to)
 		{
 			if (to == null)
 			{
@@ -52,7 +121,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensMinted(tokensMintedArgs);
 		}
 
-		public void Transfer(decimal amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
+		private void Transfer(decimal amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{
@@ -81,7 +150,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensTransferred(transferArgs);
 		}
 
-		public void Burn(decimal amount, Address from, ITokenPicker<TTagType> customPicker = null)
+		private void Burn(decimal amount, Address from, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{
@@ -114,21 +183,6 @@ namespace TokenSystem.TokenManager
 		{
 			this.holdersToBalances[holder].RemoveFromBalance(tokens);
 			this.totalBalance.RemoveFromBalance(tokens);
-		}
-
-		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
-		{
-			this.TokensMinted?.Invoke(this, e);
-		}
-
-		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
-		{
-			this.TokensTransferred?.Invoke(this, e);
-		}
-
-		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
-		{
-			this.TokensBurned?.Invoke(this, e);
 		}
 	}
 }

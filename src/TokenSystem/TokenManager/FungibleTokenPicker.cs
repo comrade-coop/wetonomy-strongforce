@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections.Generic;
 using TokenSystem.Exceptions;
 using TokenSystem.Tokens;
@@ -22,7 +24,7 @@ namespace TokenSystem.TokenManager
 
 			var pickedTokens = new ReadOnlyTaggedTokens<string>(new SortedDictionary<string, decimal>
 			{
-				[FungibleTokenTagger.DefaultTokenTag] = amount
+				[FungibleTokenTagger.DefaultTokenTag] = amount,
 			});
 
 			return pickedTokens;

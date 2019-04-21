@@ -1,5 +1,7 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs

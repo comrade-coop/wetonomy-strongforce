@@ -1,36 +1,37 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 
 namespace TokenSystem.TokenFlow
 {
-    public class RecipientManager
-    {
-        private readonly IList<Address> recipients;
+	public class RecipientManager
+	{
+		public RecipientManager()
+			: this(new List<Address>())
+		{
+		}
 
-        public RecipientManager() : this(new List<Address>())
-        {
-        }
+		public RecipientManager(IList<Address> recipients)
+		{
+			this.Recipients = recipients;
+		}
 
-        public RecipientManager(IList<Address> recipients)
-        {
-            this.recipients = recipients;
-        }
+		public IList<Address> Recipients { get; }
 
-        public void AddRecipient(Address recipient)
-        {
-            if (this.recipients.Contains(recipient))
-            {
-                return;
-            }
+		public void AddRecipient(Address recipient)
+		{
+			if (this.Recipients.Contains(recipient))
+			{
+				return;
+			}
 
-            this.recipients.Add(recipient);
-        }
+			this.Recipients.Add(recipient);
+		}
 
-        public bool RemoveRecipient(Address recipient)
-        {
-            return this.recipients.Remove(recipient);
-        }
-
-        public IList<Address> Recipients => this.recipients;
-    }
+		public bool RemoveRecipient(Address recipient)
+		{
+			return this.Recipients.Remove(recipient);
+		}
+	}
 }

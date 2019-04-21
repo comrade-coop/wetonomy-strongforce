@@ -1,12 +1,14 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System;
 
 namespace TokenSystem.Exceptions
 {
-    public class InsufficientTokenAmountException : Exception
-    {
-        public InsufficientTokenAmountException(decimal total, decimal requested) :
-            base($"Insufficient token amount requested: Requested {requested} from only {total}.")
-        {
-        }
-    }
+	public class InsufficientTokenAmountException : Exception
+	{
+		public InsufficientTokenAmountException(decimal total, decimal requested)
+			: base($"Insufficient token amount requested: Requested {requested} from only {total}.")
+		{
+		}
+	}
 }

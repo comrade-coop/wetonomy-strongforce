@@ -3,15 +3,22 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
+
     <ItemGroup>
-        <PackageReference Include="StyleCop.Analyzers" Version="1.1.1-rc.108" />
+        <PackageReference Include="StrongForce" Version="0.1.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.1.1-rc.108"/>
     </ItemGroup>
     <ItemGroup>
-        <AdditionalFiles Include="..\..\codeAnalysis\stylecop.json" Link="stylecop.json" />
+        <AdditionalFiles Include="..\..\codeAnalysis\stylecop.json" Link="stylecop.json"/>
     </ItemGroup>
+    
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
+
 </Project>

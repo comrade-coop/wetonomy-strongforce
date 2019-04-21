@@ -1,5 +1,7 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 using TokenSystem.TokenManager;
 
 namespace TokenSystem.TokenFlow

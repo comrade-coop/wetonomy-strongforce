@@ -1,3 +1,5 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 namespace TokenSystem.Tokens
 {
 	public interface ITaggedTokens<TTagType> : IReadOnlyTaggedTokens<TTagType>

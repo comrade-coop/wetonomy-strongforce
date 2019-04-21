@@ -1,5 +1,7 @@
+// Copyright (c) Comrade Coop. All rights reserved.
+
 using System.Collections.Generic;
-using TokenSystem.StrongForceMocks;
+using ContractsCore;
 using TokenSystem.TokenManager;
 
 namespace TokenSystem.TokenFlow
@@ -9,8 +11,8 @@ namespace TokenSystem.TokenFlow
 		private readonly TokenManager<TTokenTagType> tokenManager;
 		private readonly ISplitStrategy<TTokenTagType> splitStrategy;
 
-		public TokenSplitter(TokenManager<TTokenTagType> tokenManager, ISplitStrategy<TTokenTagType> splitStrategy) :
-			this(new List<Address>(), tokenManager, splitStrategy)
+		public TokenSplitter(TokenManager<TTokenTagType> tokenManager, ISplitStrategy<TTokenTagType> splitStrategy)
+			: this(new List<Address>(), tokenManager, splitStrategy)
 		{
 		}
 
