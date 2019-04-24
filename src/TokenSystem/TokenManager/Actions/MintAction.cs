@@ -1,5 +1,6 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
@@ -12,7 +13,7 @@ namespace TokenSystem.TokenManager.Actions
 			Address origin,
 			Address sender,
 			Address target,
-			decimal amount,
+			BigInteger amount,
 			Address to)
 			: base(hash, origin, sender, target)
 		{
@@ -20,7 +21,7 @@ namespace TokenSystem.TokenManager.Actions
 			this.To = to;
 		}
 
-		public decimal Amount { get; }
+		public BigInteger Amount { get; }
 
 		public Address To { get; }
 	}

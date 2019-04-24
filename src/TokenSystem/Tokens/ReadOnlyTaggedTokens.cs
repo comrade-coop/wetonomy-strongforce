@@ -2,15 +2,16 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using TokenSystem.Exceptions;
 
 namespace TokenSystem.Tokens
 {
 	public class ReadOnlyTaggedTokens<TTagType> : IReadOnlyTaggedTokens<TTagType>
 	{
-		public ReadOnlyTaggedTokens(IDictionary<TTagType, decimal> initialTagsToBalances)
+		public ReadOnlyTaggedTokens(IDictionary<TTagType, BigInteger> initialTagsToBalances)
 		{
-			foreach ((TTagType _, decimal amount) in initialTagsToBalances)
+			foreach ((TTagType _, BigInteger amount) in initialTagsToBalances)
 			{
 				if (amount < 0)
 				{
@@ -24,18 +25,18 @@ namespace TokenSystem.Tokens
 		}
 
 		public ReadOnlyTaggedTokens()
-			: this(new SortedDictionary<TTagType, decimal>())
+			: this(new SortedDictionary<TTagType, BigInteger>())
 		{
 		}
 
-		public decimal TotalTokens { get; protected set; }
+		public BigInteger TotalTokens { get; protected set; }
 
-		protected IDictionary<TTagType, decimal> TagsToBalances { get; set; }
+		protected IDictionary<TTagType, BigInteger> TagsToBalances { get; set; }
 
-		public decimal GetAmountByTag(TTagType tag)
+		public BigInteger GetAmountByTag(TTagType tag)
 			=> this.TagsToBalances.ContainsKey(tag) ? this.TagsToBalances[tag] : 0;
 
-		public IEnumerator<KeyValuePair<TTagType, decimal>> GetEnumerator()
+		public IEnumerator<KeyValuePair<TTagType, BigInteger>> GetEnumerator()
 		{
 			return this.TagsToBalances.GetEnumerator();
 		}

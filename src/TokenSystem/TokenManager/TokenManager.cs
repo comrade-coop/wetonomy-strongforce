@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Contracts;
 using ContractsCore.Permissions;
@@ -80,24 +81,20 @@ namespace TokenSystem.TokenManager
 			return new object();
 		}
 
-		protected override bool HandleAcceptedAction(Action action)
+		protected override bool HandleReceivedAction(Action action)
 		{
 			switch (action)
 			{
 				case MintAction mintAction:
-					this.Mint(mintAction.Amount, mintAction.To);
+					this.HandleMintAction(mintAction);
 					return true;
 
 				case TransferAction<TTagType> transferAction:
-					this.Transfer(
-						transferAction.Amount,
-						transferAction.From,
-						transferAction.To,
-						transferAction.PickStrategy);
+					this.HandleTransferAction(transferAction);
 					return true;
 
 				case BurnAction<TTagType> burnAction:
-					this.Burn(burnAction.Amount, burnAction.From, burnAction.PickStrategy);
+					this.HandleBurnAction(burnAction);
 					return true;
 
 				default:
@@ -105,7 +102,7 @@ namespace TokenSystem.TokenManager
 			}
 		}
 
-		private void Mint(decimal amount, Address to)
+		private void Mint(BigInteger amount, Address to)
 		{
 			if (to == null)
 			{
@@ -121,7 +118,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensMinted(tokensMintedArgs);
 		}
 
-		private void Transfer(decimal amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
+		private void Transfer(BigInteger amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{
@@ -150,7 +147,7 @@ namespace TokenSystem.TokenManager
 			this.OnTokensTransferred(transferArgs);
 		}
 
-		private void Burn(decimal amount, Address from, ITokenPicker<TTagType> customPicker = null)
+		private void Burn(BigInteger amount, Address from, ITokenPicker<TTagType> customPicker = null)
 		{
 			if (from == null)
 			{
@@ -183,6 +180,39 @@ namespace TokenSystem.TokenManager
 		{
 			this.holdersToBalances[holder].RemoveFromBalance(tokens);
 			this.totalBalance.RemoveFromBalance(tokens);
+		}
+
+		private void HandleMintAction(MintAction action)
+		{
+			this.RequirePermission(action);
+			this.Mint(action.Amount, action.To);
+		}
+
+		private void HandleTransferAction(TransferAction<TTagType> action)
+		{
+			if (!action.Sender.Equals(action.From))
+			{
+				this.RequirePermission(action);
+			}
+
+			this.Transfer(
+				action.Amount,
+				action.From,
+				action.To,
+				action.CustomPicker);
+		}
+
+		private void HandleBurnAction(BurnAction<TTagType> action)
+		{
+			if (!action.Sender.Equals(action.From))
+			{
+				this.RequirePermission(action);
+			}
+
+			this.Burn(
+				action.Amount,
+				action.From,
+				action.CustomPicker);
 		}
 	}
 }

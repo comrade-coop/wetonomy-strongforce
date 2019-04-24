@@ -2,36 +2,51 @@
 
 using System.Collections.Generic;
 using ContractsCore;
+using ContractsCore.Actions;
+using ContractsCore.Contracts;
 
 namespace TokenSystem.TokenFlow
 {
-	public class RecipientManager
+	public abstract class RecipientManager : Contract
 	{
-		public RecipientManager()
-			: this(new List<Address>())
+		private readonly IList<Address> recipients;
+
+		public RecipientManager(Address address)
+			: this(address, new List<Address>())
 		{
 		}
 
-		public RecipientManager(IList<Address> recipients)
+		public RecipientManager(Address address, IList<Address> recipients)
+			: base(address)
 		{
-			this.Recipients = recipients;
+			this.recipients = recipients;
 		}
 
-		public IList<Address> Recipients { get; }
+		public IList<Address> Recipients => this.recipients;
 
 		public void AddRecipient(Address recipient)
 		{
-			if (this.Recipients.Contains(recipient))
+			if (this.recipients.Contains(recipient))
 			{
 				return;
 			}
 
-			this.Recipients.Add(recipient);
+			this.recipients.Add(recipient);
 		}
 
 		public bool RemoveRecipient(Address recipient)
 		{
-			return this.Recipients.Remove(recipient);
+			return this.recipients.Remove(recipient);
+		}
+
+		protected override object GetState()
+		{
+			return new object();
+		}
+
+		protected override bool HandleReceivedAction(Action action)
+		{
+			return false;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
@@ -12,24 +13,24 @@ namespace TokenSystem.TokenManager.Actions
 			Address origin,
 			Address sender,
 			Address target,
-			decimal amount,
+			BigInteger amount,
 			Address from,
 			Address to,
-			ITokenPicker<TTokenTagType> pickStrategy = null)
+			ITokenPicker<TTokenTagType> customPicker = null)
 			: base(hash, origin, sender, target)
 		{
 			this.Amount = amount;
 			this.From = from;
 			this.To = to;
-			this.PickStrategy = pickStrategy;
+			this.CustomPicker = customPicker;
 		}
 
-		public decimal Amount { get; }
+		public BigInteger Amount { get; }
 
 		public Address From { get; }
 
 		public Address To { get; }
 
-		public ITokenPicker<TTokenTagType> PickStrategy { get; }
+		public ITokenPicker<TTokenTagType> CustomPicker { get; }
 	}
 }

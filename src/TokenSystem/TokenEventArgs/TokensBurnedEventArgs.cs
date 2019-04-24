@@ -1,6 +1,7 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
 using System;
+using System.Numerics;
 using ContractsCore;
 using TokenSystem.Tokens;
 
@@ -8,14 +9,14 @@ namespace TokenSystem.TokenEventArgs
 {
 	public class TokensBurnedEventArgs<TTagType> : EventArgs
 	{
-		public TokensBurnedEventArgs(decimal amount, IReadOnlyTaggedTokens<TTagType> tokens, Address from)
+		public TokensBurnedEventArgs(BigInteger amount, IReadOnlyTaggedTokens<TTagType> tokens, Address from)
 		{
 			this.Amount = amount;
 			this.Tokens = tokens;
 			this.From = from;
 		}
 
-		public decimal Amount { get; }
+		public BigInteger Amount { get; }
 
 		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
 
