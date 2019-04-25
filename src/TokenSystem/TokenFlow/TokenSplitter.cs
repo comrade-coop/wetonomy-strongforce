@@ -3,8 +3,11 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
+using ContractsCore.Actions;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManager;
+using TokenSystem.TokenManager.Actions;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
@@ -24,40 +27,33 @@ namespace TokenSystem.TokenFlow
 			: base(address, recipients)
 		{
 			this.TokenManager = tokenManager;
-
-			this.TokenManager.TokensMinted += this.OnTokensMinted;
-			this.TokenManager.TokensTransferred += this.OnTokensTransferred;
 		}
 
 		protected TokenManager<TTokenTagType> TokenManager { get; }
 
-		protected virtual void OnTokensMinted(object sender, TokensMintedEventArgs<TTokenTagType> mintedEventArgs)
-		{
-			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender))
-			{
-				return;
-			}
+		protected abstract void Split(IReadOnlyTaggedTokens<TTokenTagType> receivedTokens);
 
-			if (tokenManagerSender.Address.Equals(this.TokenManager.Address) && mintedEventArgs.To.Equals(this.Address))
+		protected override bool HandleReceivedAction(Action action)
+		{
+			switch (action)
 			{
-				this.Split(mintedEventArgs.Amount);
+				case TokensReceivedAction<TTokenTagType> tokensReceivedAction:
+					this.OnTokensReceived(tokensReceivedAction.Sender, tokensReceivedAction.Tokens);
+					return true;
+				case TokensMintedAction<TTokenTagType> tokensMintedAction:
+					this.OnTokensReceived(tokensMintedAction.Sender, tokensMintedAction.Tokens);
+					return true;
+				default:
+					return false;
 			}
 		}
 
-		protected virtual void OnTokensTransferred(
-			object sender,
-			TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
+		private void OnTokensReceived(Address tokenManagerAddress, IReadOnlyTaggedTokens<TTokenTagType> tokens)
 		{
-			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender) ||
-				!tokenManagerSender.Address.Equals(this.TokenManager.Address) ||
-				!transferredEventArgs.To.Equals(this.Address))
+			if (tokenManagerAddress.Equals(this.TokenManager.Address))
 			{
-				return;
+				this.Split(tokens);
 			}
-
-			this.Split(transferredEventArgs.Amount);
 		}
-
-		protected abstract void Split(BigInteger amount);
 	}
 }

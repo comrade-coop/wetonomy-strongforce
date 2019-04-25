@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
 using ContractsCore.Contracts;
+using ContractsCore.Events;
 using ContractsCore.Permissions;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManager.Actions;
@@ -61,19 +62,48 @@ namespace TokenSystem.TokenManager
 
 		public IReadOnlyTaggedTokens<TTagType> TaggedTotalBalance() => this.totalBalance;
 
-		protected virtual void OnTokensMinted(TokensMintedEventArgs<TTagType> e)
+		protected virtual void OnTokensMinted(IReadOnlyTaggedTokens<TTagType> tokens, Address to)
 		{
-			this.TokensMinted?.Invoke(this, e);
+			var mintedAction = new TokensMintedAction<TTagType>(
+				string.Empty,
+				this.Address,
+				this.Address,
+				to,
+				tokens);
+			this.OnSend(new ActionEventArgs(mintedAction));
+
+			var tokensMintedArgs = new TokensMintedEventArgs<TTagType>(tokens, to);
+			this.TokensMinted?.Invoke(this, tokensMintedArgs);
 		}
 
-		protected virtual void OnTokensTransferred(TokensTransferredEventArgs<TTagType> e)
+		protected virtual void OnTokensTransferred(IReadOnlyTaggedTokens<TTagType> tokens, Address from, Address to)
 		{
-			this.TokensTransferred?.Invoke(this, e);
+			var sentAction = new TokensSentAction<TTagType>(
+				string.Empty,
+				this.Address,
+				this.Address,
+				from,
+				to,
+				tokens);
+			var receivedAction = new TokensReceivedAction<TTagType>(
+				string.Empty,
+				this.Address,
+				this.Address,
+				to,
+				from,
+				tokens);
+
+			this.OnSend(new ActionEventArgs(sentAction));
+			this.OnSend(new ActionEventArgs(receivedAction));
+
+			var transferArgs = new TokensTransferredEventArgs<TTagType>(tokens, from, to);
+			this.TokensTransferred?.Invoke(this, transferArgs);
 		}
 
-		protected virtual void OnTokensBurned(TokensBurnedEventArgs<TTagType> e)
+		protected virtual void OnTokensBurned(IReadOnlyTaggedTokens<TTagType> tokens, Address from)
 		{
-			this.TokensBurned?.Invoke(this, e);
+			var burnArgs = new TokensBurnedEventArgs<TTagType>(tokens, from);
+			this.TokensBurned?.Invoke(this, burnArgs);
 		}
 
 		protected override object GetState()
@@ -114,8 +144,7 @@ namespace TokenSystem.TokenManager
 			IReadOnlyTaggedTokens<TTagType> newTokens = this.tokenTagger.Tag(to, amount);
 			this.AddToBalances(newTokens, to);
 
-			var tokensMintedArgs = new TokensMintedEventArgs<TTagType>(amount, newTokens, to);
-			this.OnTokensMinted(tokensMintedArgs);
+			this.OnTokensMinted(newTokens, to);
 		}
 
 		private void Transfer(BigInteger amount, Address from, Address to, ITokenPicker<TTagType> customPicker = null)
@@ -143,8 +172,7 @@ namespace TokenSystem.TokenManager
 			this.RemoveFromBalances(tokensToTransfer, from);
 			this.AddToBalances(tokensToTransfer, to);
 
-			var transferArgs = new TokensTransferredEventArgs<TTagType>(amount, tokensToTransfer, from, to);
-			this.OnTokensTransferred(transferArgs);
+			this.OnTokensTransferred(tokensToTransfer, from, to);
 		}
 
 		private void Burn(BigInteger amount, Address from, ITokenPicker<TTagType> customPicker = null)
@@ -161,8 +189,7 @@ namespace TokenSystem.TokenManager
 			IReadOnlyTaggedTokens<TTagType> tokensToBurn = customPicker.Pick(this.holdersToBalances[from], amount);
 			this.holdersToBalances[from].RemoveFromBalance(tokensToBurn);
 
-			var burnArgs = new TokensBurnedEventArgs<TTagType>(amount, tokensToBurn, from);
-			this.OnTokensBurned(burnArgs);
+			this.OnTokensBurned(tokensToBurn, from);
 		}
 
 		private void AddToBalances(IReadOnlyTaggedTokens<TTagType> tokens, Address holder)

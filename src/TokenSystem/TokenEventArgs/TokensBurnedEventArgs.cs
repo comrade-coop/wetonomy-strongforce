@@ -9,14 +9,11 @@ namespace TokenSystem.TokenEventArgs
 {
 	public class TokensBurnedEventArgs<TTagType> : EventArgs
 	{
-		public TokensBurnedEventArgs(BigInteger amount, IReadOnlyTaggedTokens<TTagType> tokens, Address from)
+		public TokensBurnedEventArgs(IReadOnlyTaggedTokens<TTagType> tokens, Address from)
 		{
-			this.Amount = amount;
 			this.Tokens = tokens;
 			this.From = from;
 		}
-
-		public BigInteger Amount { get; }
 
 		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
 
