@@ -212,7 +212,7 @@ namespace TokenSystem.Tests
 			Address to = this.addresses[0];
 			this.tokenManager.TokensMinted += (sender, args) =>
 			{
-				Assert.Equal(mintAmount, args.Amount);
+				Assert.Equal(mintAmount, args.Tokens.TotalTokens);
 				Assert.Equal(to, args.To);
 			};
 
@@ -228,7 +228,7 @@ namespace TokenSystem.Tests
 
 			this.tokenManager.TokensTransferred += (sender, args) =>
 			{
-				Assert.Equal(transferAmount, args.Amount);
+				Assert.Equal(transferAmount, args.Tokens.TotalTokens);
 				Assert.Equal(from, args.From);
 				Assert.Equal(to, args.To);
 			};
@@ -245,7 +245,7 @@ namespace TokenSystem.Tests
 
 			this.tokenManager.TokensBurned += (sender, args) =>
 			{
-				Assert.Equal(burnAmount, args.Amount);
+				Assert.Equal(burnAmount, args.Tokens.TotalTokens);
 				Assert.Equal(from, args.From);
 			};
 

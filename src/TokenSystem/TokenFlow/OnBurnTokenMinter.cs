@@ -37,7 +37,7 @@ namespace TokenSystem.TokenFlow
 				return;
 			}
 
-			this.Mint(burnArgs.Amount);
+			this.Mint(burnArgs.Tokens.TotalTokens);
 		}
 	}
 }

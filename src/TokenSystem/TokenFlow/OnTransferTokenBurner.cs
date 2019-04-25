@@ -53,7 +53,7 @@ namespace TokenSystem.TokenFlow
 				return;
 			}
 
-			this.Burn(transferredEventArgs.Amount, transferredEventArgs.To);
+			this.Burn(transferredEventArgs.Tokens.TotalTokens, transferredEventArgs.To);
 		}
 	}
 }

@@ -6,6 +6,7 @@ using ContractsCore;
 using ContractsCore.Events;
 using TokenSystem.TokenManager;
 using TokenSystem.TokenManager.Actions;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
@@ -24,9 +25,9 @@ namespace TokenSystem.TokenFlow
 		{
 		}
 
-		protected override void Split(BigInteger amount)
+		protected override void Split(IReadOnlyTaggedTokens<TTokenTagType> receivedTokens)
 		{
-			BigInteger splitAmount = amount / this.Recipients.Count;
+			BigInteger splitAmount = receivedTokens.TotalTokens / this.Recipients.Count;
 
 			if (splitAmount <= 0)
 			{
