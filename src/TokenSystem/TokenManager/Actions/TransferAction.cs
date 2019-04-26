@@ -10,14 +10,12 @@ namespace TokenSystem.TokenManager.Actions
 	{
 		public TransferAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address from,
 			Address to,
 			ITokenPicker<TTokenTagType> customPicker = null)
-			: base(hash, origin, sender, target)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.From = from;

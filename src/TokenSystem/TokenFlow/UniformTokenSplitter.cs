@@ -38,13 +38,11 @@ namespace TokenSystem.TokenFlow
 			{
 				TransferAction<TTokenTagType> transferAction = new TransferAction<TTokenTagType>(
 					string.Empty,
-					this.Address,
-					this.Address,
 					this.TokenManager.Address,
 					splitAmount,
 					this.Address,
 					recipient);
-				this.OnSend(new ActionEventArgs(transferAction));
+				this.OnSend(transferAction);
 			}
 		}
 	}

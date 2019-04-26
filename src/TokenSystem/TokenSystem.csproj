@@ -5,10 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="StrongForce" Version="0.1.4" />
-    </ItemGroup>
-
-    <ItemGroup>
+        <PackageReference Include="StrongForce" Version="0.2.1" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.1.1-rc.108" />
     </ItemGroup>
     <ItemGroup>
@@ -19,6 +16,12 @@
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
         </AssemblyAttribute>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Reference Include="ContractsCore">
+        <HintPath>..\..\..\strongforce\SmartContracts.NET\ContractsCore\bin\Debug\netstandard2.0\ContractsCore.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

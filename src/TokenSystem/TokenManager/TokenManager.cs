@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
+using ContractsCore.Actions;
 using ContractsCore.Contracts;
 using ContractsCore.Events;
+using ContractsCore.Exceptions;
 using ContractsCore.Permissions;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManager.Actions;
@@ -14,7 +16,7 @@ using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenManager
 {
-	public class TokenManager<TTagType> : PermittedContract, ITokenManager<TTagType>
+	public class TokenManager<TTagType> : AclPermittedContract, ITokenManager<TTagType>
 	{
 		private readonly ITokenTagger<TTagType> tokenTagger;
 		private readonly ITokenPicker<TTagType> defaultTokenPicker;
@@ -25,9 +27,10 @@ namespace TokenSystem.TokenManager
 		public TokenManager(
 			Address address,
 			Address permissionManager,
+			ContractRegistry registry,
 			ITokenTagger<TTagType> tokenTagger,
 			ITokenPicker<TTagType> defaultTokenPicker)
-			: base(address, permissionManager)
+			: base(address, registry, permissionManager)
 		{
 			this.tokenTagger = tokenTagger;
 			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
@@ -38,10 +41,11 @@ namespace TokenSystem.TokenManager
 		public TokenManager(
 			Address address,
 			Address permissionManager,
+			ContractRegistry registry,
 			AccessControlList acl,
 			ITokenTagger<TTagType> tokenTagger,
 			ITokenPicker<TTagType> defaultTokenPicker)
-			: base(address, permissionManager, acl)
+			: base(address, registry, permissionManager, acl)
 		{
 			this.tokenTagger = tokenTagger;
 			this.holdersToBalances = new Dictionary<Address, ITaggedTokens<TTagType>>();
@@ -64,13 +68,9 @@ namespace TokenSystem.TokenManager
 
 		protected virtual void OnTokensMinted(IReadOnlyTaggedTokens<TTagType> tokens, Address to)
 		{
-			var mintedAction = new TokensMintedAction<TTagType>(
-				string.Empty,
-				this.Address,
-				this.Address,
-				to,
-				tokens);
-			this.OnSend(new ActionEventArgs(mintedAction));
+			var mintedAction = new TokensMintedAction<TTagType>(string.Empty, to, tokens);
+
+			this.TrySendTokenAction(mintedAction);
 
 			var tokensMintedArgs = new TokensMintedEventArgs<TTagType>(tokens, to);
 			this.TokensMinted?.Invoke(this, tokensMintedArgs);
@@ -78,23 +78,11 @@ namespace TokenSystem.TokenManager
 
 		protected virtual void OnTokensTransferred(IReadOnlyTaggedTokens<TTagType> tokens, Address from, Address to)
 		{
-			var sentAction = new TokensSentAction<TTagType>(
-				string.Empty,
-				this.Address,
-				this.Address,
-				from,
-				to,
-				tokens);
-			var receivedAction = new TokensReceivedAction<TTagType>(
-				string.Empty,
-				this.Address,
-				this.Address,
-				to,
-				from,
-				tokens);
+			var sentAction = new TokensSentAction<TTagType>(string.Empty, from, to, tokens);
+			var receivedAction = new TokensReceivedAction<TTagType>(string.Empty, to, from, tokens);
 
-			this.OnSend(new ActionEventArgs(sentAction));
-			this.OnSend(new ActionEventArgs(receivedAction));
+			this.TrySendTokenAction(sentAction);
+			this.TrySendTokenAction(receivedAction);
 
 			var transferArgs = new TokensTransferredEventArgs<TTagType>(tokens, from, to);
 			this.TokensTransferred?.Invoke(this, transferArgs);
@@ -211,7 +199,7 @@ namespace TokenSystem.TokenManager
 
 		private void HandleMintAction(MintAction action)
 		{
-			this.RequirePermission(action);
+			this.CheckPermission(action);
 			this.Mint(action.Amount, action.To);
 		}
 
@@ -219,7 +207,7 @@ namespace TokenSystem.TokenManager
 		{
 			if (!action.Sender.Equals(action.From))
 			{
-				this.RequirePermission(action);
+				this.CheckPermission(action);
 			}
 
 			this.Transfer(
@@ -233,13 +221,37 @@ namespace TokenSystem.TokenManager
 		{
 			if (!action.Sender.Equals(action.From))
 			{
-				this.RequirePermission(action);
+				this.CheckPermission(action);
 			}
 
 			this.Burn(
 				action.Amount,
 				action.From,
 				action.CustomPicker);
+		}
+
+		public virtual void TrySendTokenAction(Action action)
+		{
+			try
+			{
+				this.OnSend(action);
+			}
+			catch (NoPermissionException e)
+			{
+				if (typeof(TokenAction<TTagType>).IsAssignableFrom(e.Permission.Type))
+				{
+					Console.WriteLine(e);
+				}
+				else
+				{
+					throw e;
+				}
+			}
+		}
+
+		protected override void BulletTaken(List<Stack<Address>> ways, Action targetAction)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

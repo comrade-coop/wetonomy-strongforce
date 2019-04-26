@@ -10,12 +10,10 @@ namespace TokenSystem.TokenManager.Actions
 	{
 		public MintAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address to)
-			: base(hash, origin, sender, target)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.To = to;

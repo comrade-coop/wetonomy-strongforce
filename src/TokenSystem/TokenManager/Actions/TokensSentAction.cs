@@ -4,23 +4,18 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManager.Actions
 {
-	public class TokensSentAction<TTokenTagType> : Action
+	public class TokensSentAction<TTokenTagType> : TokenAction<TTokenTagType>
 	{
 		public TokensSentAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			Address tokensReceiver,
 			IReadOnlyTaggedTokens<TTokenTagType> tokens)
-			: base(hash, origin, sender, target)
+			: base(hash, target, tokens)
 		{
 			this.TokensReceiver = tokensReceiver;
-			this.Tokens = tokens;
 		}
 
 		public Address TokensReceiver { get; }
-
-		public IReadOnlyTaggedTokens<TTokenTagType> Tokens { get; }
 	}
 }

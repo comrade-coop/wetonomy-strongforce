@@ -17,21 +17,21 @@ namespace TokenSystem.Tests
 		private readonly TokenManager<string> tokenManager;
 		private readonly ContractRegistry contractRegistry;
 		private readonly IList<Address> addresses;
-		private readonly Address permissionManager;
+		private readonly ContractExecutor permissionManager;
 
 		public TestTokenMinters()
 		{
 			this.contractRegistry = new ContractRegistry();
-
 			this.addresses = AddressTestUtils.GenerateRandomAddresses();
-
-			this.permissionManager = this.addresses[0];
+			this.permissionManager = new ContractExecutor(this.addresses[0]);
+			this.contractRegistry.RegisterContract(this.permissionManager);
 
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.tokenManager = new TokenManager<string>(
 				this.addressFactory.Create(),
-				this.permissionManager,
+				this.permissionManager.Address,
+				this.contractRegistry,
 				tokenTagger,
 				tokenPicker);
 
@@ -39,22 +39,25 @@ namespace TokenSystem.Tests
 
 			var mintPermission = new AddPermissionAction(
 				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
 				this.tokenManager.Address,
-				this.permissionManager,
-				new Permission(typeof(MintAction)));
+				new Permission(typeof(MintAction)),
+				this.permissionManager.Address);
 
 			var transferPermission = new AddPermissionAction(
 				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
 				this.tokenManager.Address,
-				this.permissionManager,
-				new Permission(typeof(TransferAction<string>)));
+				new Permission(typeof(TransferAction<string>)),
+				this.permissionManager.Address);
 
-			this.contractRegistry.HandleAction(mintPermission);
-			this.contractRegistry.HandleAction(transferPermission);
+			var burnPermission = new AddPermissionAction(
+				string.Empty,
+				this.tokenManager.Address,
+				new Permission(typeof(BurnAction<string>)),
+				this.permissionManager.Address);
+
+			this.permissionManager.ExecuteAction(mintPermission);
+			this.permissionManager.ExecuteAction(transferPermission);
+			this.permissionManager.ExecuteAction(burnPermission);
 		}
 
 		[Fact]
@@ -71,13 +74,11 @@ namespace TokenSystem.Tests
 
 			var mintPermissionAction = new AddPermissionAction(
 				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
 				this.tokenManager.Address,
-				minter.Address,
-				new Permission(typeof(MintAction)));
+				new Permission(typeof(MintAction)),
+				minter.Address);
 
-			this.contractRegistry.HandleAction(mintPermissionAction);
+			this.permissionManager.ExecuteAction(mintPermissionAction);
 
 			Address burnAddress = this.addresses[3];
 
@@ -85,21 +86,17 @@ namespace TokenSystem.Tests
 
 			var mintAction = new MintAction(
 				string.Empty,
-				this.permissionManager,
-				this.permissionManager,
 				this.tokenManager.Address,
 				burnAmount,
 				burnAddress);
 			var burnAction = new BurnAction<string>(
 				string.Empty,
-				this.addresses[3],
-				this.addresses[3],
 				this.tokenManager.Address,
 				burnAmount,
 				burnAddress);
 
-			this.contractRegistry.HandleAction(mintAction);
-			this.contractRegistry.HandleAction(burnAction);
+			this.permissionManager.ExecuteAction(mintAction);
+			this.permissionManager.ExecuteAction(burnAction);
 
 			foreach (Address address in receivers)
 			{

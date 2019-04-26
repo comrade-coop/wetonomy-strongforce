@@ -36,13 +36,11 @@ namespace TokenSystem.TokenFlow
 		{
 			var burnActionTo = new BurnAction<TTokenTagType>(
 				string.Empty,
-				this.Address,
-				this.Address,
 				this.TokenManager.Address,
 				amount,
 				burnedAddress);
 
-			this.OnSend(new ActionEventArgs(burnActionTo));
+			this.OnSend(burnActionTo);
 		}
 
 		private void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)

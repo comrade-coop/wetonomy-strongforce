@@ -10,13 +10,11 @@ namespace TokenSystem.TokenManager.Actions
 	{
 		public BurnAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address from,
 			ITokenPicker<TTokenTagType> customPicker = null)
-			: base(hash, origin, sender, target)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.From = from;

@@ -32,12 +32,10 @@ namespace TokenSystem.TokenFlow
 			{
 				var mintAction = new MintAction(
 					string.Empty,
-					this.Address,
-					this.Address,
 					this.TokenManager.Address,
 					mintAmountPerRecipient,
 					recipient);
-				this.OnSend(new ActionEventArgs(mintAction));
+				this.OnSend(mintAction);
 			}
 		}
 	}
