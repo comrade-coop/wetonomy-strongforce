@@ -4,28 +4,28 @@ using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
 using ContractsCore.Events;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-	public class UniformTokenSplitter<TTokenTagType> : TokenSplitter<TTokenTagType>
+	public class UniformTokenSplitter : TokenSplitter
 	{
-		public UniformTokenSplitter(Address address, TokenManager<TTokenTagType> tokenManager)
+		public UniformTokenSplitter(Address address, TokenManager tokenManager)
 			: base(address, tokenManager)
 		{
 		}
 
 		public UniformTokenSplitter(
 			Address address,
-			TokenManager<TTokenTagType> tokenManager,
+			TokenManager tokenManager,
 			IList<Address> recipients)
 			: base(address, tokenManager, recipients)
 		{
 		}
 
-		protected override void Split(IReadOnlyTaggedTokens<TTokenTagType> receivedTokens)
+		protected override void Split(IReadOnlyTaggedTokens receivedTokens)
 		{
 			BigInteger splitAmount = receivedTokens.TotalTokens / this.Recipients.Count;
 
@@ -36,7 +36,7 @@ namespace TokenSystem.TokenFlow
 
 			foreach (Address recipient in this.Recipients)
 			{
-				TransferAction<TTokenTagType> transferAction = new TransferAction<TTokenTagType>(
+				TransferAction transferAction = new TransferAction(
 					string.Empty,
 					this.TokenManager.Address,
 					splitAmount,

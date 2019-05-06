@@ -4,14 +4,14 @@ using System.Numerics;
 
 namespace TokenSystem.Tokens
 {
-	public interface ITaggedTokens<TTagType> : IReadOnlyTaggedTokens<TTagType>
+	public interface ITaggedTokens : IReadOnlyTaggedTokens
 	{
-		void AddToBalance(TTagType tag, BigInteger amount);
+		void AddToBalance(TokenTagBase tag, BigInteger amount);
 
-		void AddToBalance(IReadOnlyTaggedTokens<TTagType> tokens);
+		void AddToBalance(IReadOnlyTaggedTokens tokens);
 
-		void RemoveFromBalance(TTagType tag, BigInteger amount);
+		void RemoveFromBalance(TokenTagBase tag, BigInteger amount);
 
-		void RemoveFromBalance(IReadOnlyTaggedTokens<TTagType> tokens);
+		void RemoveFromBalance(IReadOnlyTaggedTokens tokens);
 	}
 }

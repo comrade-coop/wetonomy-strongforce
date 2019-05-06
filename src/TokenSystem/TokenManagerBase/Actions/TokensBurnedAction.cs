@@ -2,14 +2,14 @@ using ContractsCore;
 using ContractsCore.Actions;
 using TokenSystem.Tokens;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class TokensBurnedAction<TTokenTagType> : TokenAction<TTokenTagType>
+	public class TokensBurnedAction : TokenAction
 	{
 		public TokensBurnedAction(
 			string hash,
 			Address target,
-			IReadOnlyTaggedTokens<TTokenTagType> tokens)
+			IReadOnlyTaggedTokens tokens)
 			: base(hash, target, tokens)
 		{
 		}

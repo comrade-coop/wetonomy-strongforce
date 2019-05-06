@@ -6,21 +6,22 @@ using ContractsCore.Actions;
 using ContractsCore.Contracts;
 using ContractsCore.Events;
 using TokenSystem.TokenEventArgs;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-	public class OnTransferTokenBurner<TTokenTagType> : Contract
+	public class OnTransferTokenBurner : Contract
 	{
-		public OnTransferTokenBurner(Address address, TokenManager<TTokenTagType> tokenManager)
+		public OnTransferTokenBurner(Address address, TokenManager tokenManager)
 			: base(address)
 		{
 			this.TokenManager = tokenManager;
 			this.TokenManager.TokensTransferred += this.OnTokensTransferred;
 		}
 
-		public TokenManager<TTokenTagType> TokenManager { get; }
+		public TokenManager TokenManager { get; }
 
 		protected override object GetState()
 		{
@@ -34,7 +35,7 @@ namespace TokenSystem.TokenFlow
 
 		private void Burn(BigInteger amount, Address burnedAddress)
 		{
-			var burnActionTo = new BurnAction<TTokenTagType>(
+			var burnActionTo = new BurnAction(
 				string.Empty,
 				this.TokenManager.Address,
 				amount,
@@ -43,9 +44,9 @@ namespace TokenSystem.TokenFlow
 			this.OnSend(burnActionTo);
 		}
 
-		private void OnTokensTransferred(object sender, TokensTransferredEventArgs<TTokenTagType> transferredEventArgs)
+		private void OnTokensTransferred(object sender, TokensTransferredEventArgs transferredEventArgs)
 		{
-			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender) ||
+			if (!(sender is TokenManager tokenManagerSender) ||
 				!tokenManagerSender.Address.Equals(this.TokenManager.Address))
 			{
 				return;

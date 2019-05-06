@@ -4,20 +4,20 @@ using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
 using TokenSystem.TokenEventArgs;
-using TokenSystem.TokenManager;
+using TokenSystem.TokenManagerBase;
 
 namespace TokenSystem.TokenFlow
 {
-	public abstract class OnBurnTokenMinter<TTokenTagType> : RecipientManager
+	public abstract class OnBurnTokenMinter : RecipientManager
 	{
-		public OnBurnTokenMinter(Address address, TokenManager<TTokenTagType> tokenManager)
+		public OnBurnTokenMinter(Address address, TokenManager tokenManager)
 			: this(address, tokenManager, new List<Address>())
 		{
 		}
 
 		public OnBurnTokenMinter(
 			Address address,
-			TokenManager<TTokenTagType> tokenManager,
+			TokenManager tokenManager,
 			IList<Address> recipients)
 			: base(address, recipients)
 		{
@@ -25,13 +25,13 @@ namespace TokenSystem.TokenFlow
 			this.TokenManager.TokensBurned += this.OnTokensBurned;
 		}
 
-		public TokenManager<TTokenTagType> TokenManager { get; }
+		public TokenManager TokenManager { get; }
 
 		protected abstract void Mint(BigInteger amount);
 
-		private void OnTokensBurned(object sender, TokensBurnedEventArgs<TTokenTagType> burnArgs)
+		private void OnTokensBurned(object sender, TokensBurnedEventArgs burnArgs)
 		{
-			if (!(sender is TokenManager<TTokenTagType> tokenManagerSender) ||
+			if (!(sender is TokenManager tokenManagerSender) ||
 				!tokenManagerSender.Address.Equals(this.TokenManager.Address))
 			{
 				return;

@@ -7,11 +7,11 @@ using TokenSystem.Exceptions;
 
 namespace TokenSystem.Tokens
 {
-	public class ReadOnlyTaggedTokens<TTagType> : IReadOnlyTaggedTokens<TTagType>
+	public class ReadOnlyTaggedTokens: IReadOnlyTaggedTokens
 	{
-		public ReadOnlyTaggedTokens(IDictionary<TTagType, BigInteger> initialTagsToBalances)
+		public ReadOnlyTaggedTokens(IDictionary<TokenTagBase, BigInteger> initialTagsToBalances)
 		{
-			foreach ((TTagType _, BigInteger amount) in initialTagsToBalances)
+			foreach ((TokenTagBase _, BigInteger amount) in initialTagsToBalances)
 			{
 				if (amount < 0)
 				{
@@ -25,18 +25,18 @@ namespace TokenSystem.Tokens
 		}
 
 		public ReadOnlyTaggedTokens()
-			: this(new SortedDictionary<TTagType, BigInteger>())
+			: this(new SortedDictionary<TokenTagBase, BigInteger>())
 		{
 		}
 
 		public BigInteger TotalTokens { get; protected set; }
 
-		protected IDictionary<TTagType, BigInteger> TagsToBalances { get; set; }
+		protected IDictionary<TokenTagBase, BigInteger> TagsToBalances { get; set; }
 
-		public BigInteger GetAmountByTag(TTagType tag)
+		public BigInteger GetAmountByTag(TokenTagBase tag)
 			=> this.TagsToBalances.ContainsKey(tag) ? this.TagsToBalances[tag] : 0;
 
-		public IEnumerator<KeyValuePair<TTagType, BigInteger>> GetEnumerator()
+		public IEnumerator<KeyValuePair<TokenTagBase, BigInteger>> GetEnumerator()
 		{
 			return this.TagsToBalances.GetEnumerator();
 		}

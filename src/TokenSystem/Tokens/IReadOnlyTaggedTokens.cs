@@ -5,10 +5,10 @@ using System.Numerics;
 
 namespace TokenSystem.Tokens
 {
-	public interface IReadOnlyTaggedTokens<TTagType> : IEnumerable<KeyValuePair<TTagType, BigInteger>>
+	public interface IReadOnlyTaggedTokens: IEnumerable<KeyValuePair<TokenTagBase, BigInteger>>
 	{
 		BigInteger TotalTokens { get; }
 
-		BigInteger GetAmountByTag(TTagType tag);
+		BigInteger GetAmountByTag(TokenTagBase tag);
 	}
 }

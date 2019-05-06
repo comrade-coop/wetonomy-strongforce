@@ -24,10 +24,4 @@
         <ProjectReference Include="..\TokenSystem\TokenSystem.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="ContractsCore">
-        <HintPath>..\..\..\strongforce\SmartContracts.NET\ContractsCore\bin\Debug\netstandard2.0\ContractsCore.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

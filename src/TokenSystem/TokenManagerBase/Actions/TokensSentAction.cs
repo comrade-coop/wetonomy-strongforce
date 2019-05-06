@@ -2,15 +2,15 @@ using ContractsCore;
 using ContractsCore.Actions;
 using TokenSystem.Tokens;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class TokensSentAction<TTokenTagType> : TokenAction<TTokenTagType>
+	public class TokensSentAction : TokenAction
 	{
 		public TokensSentAction(
 			string hash,
 			Address target,
 			Address tokensReceiver,
-			IReadOnlyTaggedTokens<TTokenTagType> tokens)
+			IReadOnlyTaggedTokens tokens)
 			: base(hash, target, tokens)
 		{
 			this.TokensReceiver = tokensReceiver;

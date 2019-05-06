@@ -4,7 +4,7 @@ using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
 	public class MintAction : Action
 	{

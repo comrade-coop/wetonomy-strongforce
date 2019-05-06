@@ -6,8 +6,9 @@ using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
 using TokenSystem.TokenFlow;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.TokenManagerBase.TokenTags;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -15,7 +16,7 @@ namespace TokenSystem.Tests
 	public class TestTokenBurners
 	{
 		private readonly IAddressFactory addressFactory = new RandomAddressFactory();
-		private readonly TokenManager<string> tokenManager;
+		private readonly TokenManager tokenManager;
 		private readonly ContractRegistry contractRegistry;
 		private readonly IList<Address> addresses;
 		private readonly ContractExecutor permissionManager;
@@ -30,7 +31,7 @@ namespace TokenSystem.Tests
 
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
-			this.tokenManager = new TokenManager<string>(
+			this.tokenManager = new TokenManager(
 				this.addressFactory.Create(),
 				this.permissionManager.Address,
 				this.contractRegistry,
@@ -48,7 +49,7 @@ namespace TokenSystem.Tests
 			var transferPermission = new AddPermissionAction(
 				string.Empty,
 				this.tokenManager.Address,
-				new Permission(typeof(TransferAction<string>)),
+				new Permission(typeof(TransferAction)),
 				this.permissionManager.Address);
 
 			this.permissionManager.ExecuteAction(mintPermission);
@@ -58,7 +59,7 @@ namespace TokenSystem.Tests
 		[Fact]
 		public void Transfer_WhenUsingOnTransferBurner_BurnsCorrectAmountFromReceiver()
 		{
-			var burner = new OnTransferTokenBurner<string>(
+			var burner = new OnTransferTokenBurner(
 				this.addressFactory.Create(),
 				this.tokenManager);
 
@@ -67,7 +68,7 @@ namespace TokenSystem.Tests
 			var burnPermissionAction = new AddPermissionAction(
 				string.Empty,
 				this.tokenManager.Address,
-				new Permission(typeof(BurnAction<string>)),
+				new Permission(typeof(BurnAction)),
 				burner.Address);
 
 			this.permissionManager.ExecuteAction(burnPermissionAction);
@@ -81,7 +82,7 @@ namespace TokenSystem.Tests
 				this.tokenManager.Address,
 				expectedBurnAmount,
 				sender);
-			var transferAction = new TransferAction<string>(
+			var transferAction = new TransferAction(
 				string.Empty,
 				this.tokenManager.Address,
 				expectedBurnAmount,

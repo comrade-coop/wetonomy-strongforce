@@ -3,19 +3,19 @@ using ContractsCore;
 using ContractsCore.Actions;
 using TokenSystem.Tokens;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class TokenAction<TTokenTagType> : Action
+	public class TokenAction : Action
 	{
 		public TokenAction(
 			string hash,
 			Address target,
-			IReadOnlyTaggedTokens<TTokenTagType> tokens)
+			IReadOnlyTaggedTokens tokens)
 			: base(hash, target)
 		{
 			this.Tokens = tokens;
 		}
 
-		public IReadOnlyTaggedTokens<TTokenTagType> Tokens { get; }
+		public IReadOnlyTaggedTokens Tokens { get; }
 	}
 }

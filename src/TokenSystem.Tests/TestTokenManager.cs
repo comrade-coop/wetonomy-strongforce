@@ -8,8 +8,9 @@ using ContractsCore.Actions;
 using ContractsCore.Permissions;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenEventArgs;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.TokenManagerBase.TokenTags;
 using TokenSystem.Tokens;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace TokenSystem.Tests
 	{
 		private const int AddressesCount = 10;
 
-		private readonly TokenManager<string> tokenManager;
+		private readonly TokenManager tokenManager;
 		private readonly ContractRegistry contractRegistry;
 		private readonly ContractExecutor permissionManager;
 		private readonly List<Address> addresses = AddressTestUtils.GenerateRandomAddresses(AddressesCount);
@@ -29,7 +30,7 @@ namespace TokenSystem.Tests
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.permissionManager = new ContractExecutor(this.addresses[9]);
-			this.tokenManager = new TokenManager<string>(
+			this.tokenManager = new TokenManager(
 				this.addresses[0],
 				this.permissionManager.Address,
 				this.contractRegistry,
@@ -48,12 +49,12 @@ namespace TokenSystem.Tests
 			var transferPermission = new AddPermissionAction(
 				string.Empty,
 				this.tokenManager.Address,
-				new Permission(typeof(TransferAction<string>)),
+				new Permission(typeof(TransferAction)),
 				this.permissionManager.Address);
 			var burnPermission = new AddPermissionAction(
 				string.Empty,
 				this.tokenManager.Address,
-				new Permission(typeof(BurnAction<string>)),
+				new Permission(typeof(BurnAction)),
 				this.permissionManager.Address);
 
 			this.permissionManager.ExecuteAction(mintPermission);
@@ -64,12 +65,12 @@ namespace TokenSystem.Tests
 		[Fact]
 		public void TaggedBalance_WhenTokenManagerHasBeenInstantiated_ShouldHaveAllBalancesToZero()
 		{
-			IReadOnlyTaggedTokens<string> taggedBalance = this.tokenManager.TaggedTotalBalance();
+			IReadOnlyTaggedTokens taggedBalance = this.tokenManager.TaggedTotalBalance();
 			Assert.Equal(0, taggedBalance.TotalTokens);
 
 			this.addresses.ForEach(address =>
 			{
-				IReadOnlyTaggedTokens<string> balance = this.tokenManager.TaggedBalanceOf(address);
+				IReadOnlyTaggedTokens balance = this.tokenManager.TaggedBalanceOf(address);
 				Assert.Equal(0, balance.TotalTokens);
 			});
 		}
@@ -112,8 +113,8 @@ namespace TokenSystem.Tests
 
 			this.TransferTokens(transferAmount, from, to);
 
-			IReadOnlyTaggedTokens<string> balanceFromAfterTransfer = this.tokenManager.TaggedBalanceOf(from);
-			IReadOnlyTaggedTokens<string> balanceOfToAfterTransfer = this.tokenManager.TaggedBalanceOf(to);
+			IReadOnlyTaggedTokens balanceFromAfterTransfer = this.tokenManager.TaggedBalanceOf(from);
+			IReadOnlyTaggedTokens balanceOfToAfterTransfer = this.tokenManager.TaggedBalanceOf(to);
 
 			Assert.Equal(
 				balanceFromBeforeTransfer - transferAmount,
@@ -174,7 +175,7 @@ namespace TokenSystem.Tests
 
 			this.BurnTokens(burnAmount, address);
 
-			IReadOnlyTaggedTokens<string> balanceAfterBurn = this.tokenManager.TaggedBalanceOf(address);
+			IReadOnlyTaggedTokens balanceAfterBurn = this.tokenManager.TaggedBalanceOf(address);
 
 			Assert.Equal(balanceBeforeBurn - burnAmount, balanceAfterBurn.TotalTokens);
 		}
@@ -263,9 +264,9 @@ namespace TokenSystem.Tests
 			BigInteger amount,
 			Address from,
 			Address to,
-			ITokenPicker<string> tokenPicker = null)
+			ITokenPicker tokenPicker = null)
 		{
-			var transferAction = new TransferAction<string>(
+			var transferAction = new TransferAction(
 				string.Empty,
 				this.tokenManager.Address,
 				amount,
@@ -278,9 +279,9 @@ namespace TokenSystem.Tests
 		private void BurnTokens(
 			int amount,
 			Address from,
-			ITokenPicker<string> tokenPicker = null)
+			ITokenPicker tokenPicker = null)
 		{
-			var burnAction = new BurnAction<string>(
+			var burnAction = new BurnAction(
 				string.Empty,
 				this.tokenManager.Address,
 				amount,
