@@ -3,12 +3,11 @@ using ContractsCore.Actions;
 
 namespace Members.Actions
 {
-	public class RegisterMemberAction<TMemberType> : Action
-		where TMemberType : Member
+	public class RegisterMemberAction : Action
 	{
-		public TMemberType Member;
+		public Member Member;
 
-		public RegisterMemberAction(string hash, Address target, TMemberType member) : base(hash, target)
+		public RegisterMemberAction(string hash, Address target, Member member) : base(hash, target)
 		{
 			this.Member = member;
 		}

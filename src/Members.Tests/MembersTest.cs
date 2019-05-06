@@ -1,12 +1,10 @@
 using ContractsCore;
 using TokenSystem.TokenManagerBase;
 using Xunit;
-using TokenSystem.Tokens;
 using Members.Actions;
 using ContractsCore.Actions;
 using TokenSystem.TokenManagerBase.Actions;
 using ContractsCore.Permissions;
-using TokenSystem.TokenManagerBase.TokenTags;
 
 namespace Members.Tests
 {
@@ -42,7 +40,7 @@ namespace Members.Tests
 		}
 
 		[Fact]
-		public void InitializeMember_BurnTokensOnMint_ReturnTrue()
+		public void InitializeMember_BurnTokensOnMint_AssertEqual()
 		{
 			this.member = new Member(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
 			this.contractRegistry.RegisterContract(this.member);
