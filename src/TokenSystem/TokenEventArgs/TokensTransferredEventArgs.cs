@@ -7,10 +7,10 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-	public class TokensTransferredEventArgs<TTagType> : EventArgs
+	public class TokensTransferredEventArgs : EventArgs
 	{
 		public TokensTransferredEventArgs(
-			IReadOnlyTaggedTokens<TTagType> tokens,
+			IReadOnlyTaggedTokens tokens,
 			Address from,
 			Address to)
 		{
@@ -19,7 +19,7 @@ namespace TokenSystem.TokenEventArgs
 			this.To = to;
 		}
 
-		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
+		public IReadOnlyTaggedTokens Tokens { get; }
 
 		public Address From { get; }
 

@@ -4,18 +4,16 @@ using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
 	public class MintAction : Action
 	{
 		public MintAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address to)
-			: base(hash, origin, sender, target)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.To = to;

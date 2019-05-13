@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
 using ContractsCore.Events;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-	public class UniformOnBurnTokenMinter<TTokenTagType> : OnBurnTokenMinter<TTokenTagType>
+	public class UniformOnBurnTokenMinter : OnBurnTokenMinter
 	{
-		public UniformOnBurnTokenMinter(Address address, TokenManager<TTokenTagType> tokenManager)
+		public UniformOnBurnTokenMinter(Address address, TokenManager tokenManager)
 			: base(address, tokenManager)
 		{
 		}
 
 		public UniformOnBurnTokenMinter(
 			Address address,
-			TokenManager<TTokenTagType> tokenManager,
+			TokenManager tokenManager,
 			IList<Address> recipients)
 			: base(address, tokenManager, recipients)
 		{
@@ -32,12 +33,10 @@ namespace TokenSystem.TokenFlow
 			{
 				var mintAction = new MintAction(
 					string.Empty,
-					this.Address,
-					this.Address,
 					this.TokenManager.Address,
 					mintAmountPerRecipient,
 					recipient);
-				this.OnSend(new ActionEventArgs(mintAction));
+				this.OnSend(mintAction);
 			}
 		}
 	}

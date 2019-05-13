@@ -3,20 +3,19 @@
 using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
+using TokenSystem.Tokens;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class BurnAction<TTokenTagType> : Action
+	public class BurnAction : Action
 	{
 		public BurnAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address from,
-			ITokenPicker<TTokenTagType> customPicker = null)
-			: base(hash, origin, sender, target)
+			ITokenPicker customPicker = null)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.From = from;
@@ -27,6 +26,6 @@ namespace TokenSystem.TokenManager.Actions
 
 		public Address From { get; }
 
-		public ITokenPicker<TTokenTagType> CustomPicker { get; }
+		public ITokenPicker CustomPicker { get; }
 	}
 }

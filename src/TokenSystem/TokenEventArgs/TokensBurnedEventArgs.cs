@@ -7,15 +7,15 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenEventArgs
 {
-	public class TokensBurnedEventArgs<TTagType> : EventArgs
+	public class TokensBurnedEventArgs : EventArgs
 	{
-		public TokensBurnedEventArgs(IReadOnlyTaggedTokens<TTagType> tokens, Address from)
+		public TokensBurnedEventArgs(IReadOnlyTaggedTokens tokens, Address from)
 		{
 			this.Tokens = tokens;
 			this.From = from;
 		}
 
-		public IReadOnlyTaggedTokens<TTagType> Tokens { get; }
+		public IReadOnlyTaggedTokens Tokens { get; }
 
 		public Address From { get; }
 	}

@@ -5,42 +5,42 @@ using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 using TokenSystem.TokenEventArgs;
-using TokenSystem.TokenManager;
-using TokenSystem.TokenManager.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenFlow
 {
-	public abstract class TokenSplitter<TTokenTagType> : RecipientManager
+	public abstract class TokenSplitter : RecipientManager
 	{
 		public TokenSplitter(
 			Address address,
-			TokenManager<TTokenTagType> tokenManager)
+			TokenManager tokenManager)
 			: this(address, tokenManager, new List<Address>())
 		{
 		}
 
 		public TokenSplitter(
 			Address address,
-			TokenManager<TTokenTagType> tokenManager,
+			TokenManager tokenManager,
 			IList<Address> recipients)
 			: base(address, recipients)
 		{
 			this.TokenManager = tokenManager;
 		}
 
-		protected TokenManager<TTokenTagType> TokenManager { get; }
+		protected TokenManager TokenManager { get; }
 
-		protected abstract void Split(IReadOnlyTaggedTokens<TTokenTagType> receivedTokens);
+		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens);
 
 		protected override bool HandleReceivedAction(Action action)
 		{
 			switch (action)
 			{
-				case TokensReceivedAction<TTokenTagType> tokensReceivedAction:
+				case TokensReceivedAction tokensReceivedAction:
 					this.OnTokensReceived(tokensReceivedAction.Sender, tokensReceivedAction.Tokens);
 					return true;
-				case TokensMintedAction<TTokenTagType> tokensMintedAction:
+				case TokensMintedAction tokensMintedAction:
 					this.OnTokensReceived(tokensMintedAction.Sender, tokensMintedAction.Tokens);
 					return true;
 				default:
@@ -48,7 +48,7 @@ namespace TokenSystem.TokenFlow
 			}
 		}
 
-		private void OnTokensReceived(Address tokenManagerAddress, IReadOnlyTaggedTokens<TTokenTagType> tokens)
+		private void OnTokensReceived(Address tokenManagerAddress, IReadOnlyTaggedTokens tokens)
 		{
 			if (tokenManagerAddress.Equals(this.TokenManager.Address))
 			{

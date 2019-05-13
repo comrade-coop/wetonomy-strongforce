@@ -4,20 +4,18 @@ using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 
-namespace TokenSystem.TokenManager.Actions
+namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class TransferAction<TTokenTagType> : Action
+	public class TransferAction : Action
 	{
 		public TransferAction(
 			string hash,
-			Address origin,
-			Address sender,
 			Address target,
 			BigInteger amount,
 			Address from,
 			Address to,
-			ITokenPicker<TTokenTagType> customPicker = null)
-			: base(hash, origin, sender, target)
+			ITokenPicker customPicker = null)
+			: base(hash, target)
 		{
 			this.Amount = amount;
 			this.From = from;
@@ -31,6 +29,6 @@ namespace TokenSystem.TokenManager.Actions
 
 		public Address To { get; }
 
-		public ITokenPicker<TTokenTagType> CustomPicker { get; }
+		public ITokenPicker CustomPicker { get; }
 	}
 }

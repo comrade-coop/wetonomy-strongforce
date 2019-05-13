@@ -1,13 +1,13 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
 using System.Numerics;
-using TokenSystem.TokenManager;
+using TokenSystem.TokenManagerBase;
 
 namespace TokenSystem.Tokens
 {
-	public class TaggedTokens<TTagType> : ReadOnlyTaggedTokens<TTagType>, ITaggedTokens<TTagType>
+	public class TaggedTokens : ReadOnlyTaggedTokens, ITaggedTokens
 	{
-		public void AddToBalance(TTagType tag, BigInteger amount)
+		public void AddToBalance(TokenTagBase tag, BigInteger amount)
 		{
 			TokensUtility.RequirePositiveAmount(amount);
 			if (!this.TagsToBalances.ContainsKey(tag))
@@ -19,15 +19,15 @@ namespace TokenSystem.Tokens
 			this.TotalTokens += amount;
 		}
 
-		public void AddToBalance(IReadOnlyTaggedTokens<TTagType> tokens)
+		public void AddToBalance(IReadOnlyTaggedTokens tokens)
 		{
-			foreach ((TTagType tag, BigInteger amount) in tokens)
+			foreach ((TokenTagBase tag, BigInteger amount) in tokens)
 			{
 				this.AddToBalance(tag, amount);
 			}
 		}
 
-		public void RemoveFromBalance(TTagType tag, BigInteger amount)
+		public void RemoveFromBalance(TokenTagBase tag, BigInteger amount)
 		{
 			TokensUtility.RequirePositiveAmount(amount);
 			if (!this.TagsToBalances.ContainsKey(tag))
@@ -39,9 +39,9 @@ namespace TokenSystem.Tokens
 			this.TotalTokens -= amount;
 		}
 
-		public void RemoveFromBalance(IReadOnlyTaggedTokens<TTagType> tokens)
+		public void RemoveFromBalance(IReadOnlyTaggedTokens tokens)
 		{
-			foreach ((TTagType tag, BigInteger amount) in tokens)
+			foreach ((TokenTagBase tag, BigInteger amount) in tokens)
 			{
 				this.RemoveFromBalance(tag, amount);
 			}
