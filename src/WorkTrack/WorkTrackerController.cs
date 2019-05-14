@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using ContractsCore;
-using ContractsCore.Actions;
 using ContractsCore.Contracts;
-using WorkTrack.WorkEventsArgs;
-using Action = ContractsCore.Actions.Action ;
+using Action = ContractsCore.Actions.Action;
 
 namespace WorkTrack
 {

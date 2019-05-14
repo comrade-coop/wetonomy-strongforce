@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using WorkTrack;
 using WorkTrack.Actions;
 using WorkTrack.TrackerGuards;
-using WorkTrack.WorkEventsArgs;
 using Xunit;
 
 namespace WorkTrackTests

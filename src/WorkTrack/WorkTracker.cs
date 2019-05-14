@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using ContractsCore;
 using ContractsCore.Contracts;
 using WorkTrack.Actions;
-using WorkTrack.Exceptions;
+using WorkTrack;
 using WorkTrack.TrackerGuards;
-using WorkTrack.WorkEventsArgs;
 using Action = ContractsCore.Actions.Action;
 
 namespace WorkTrack
@@ -56,7 +55,7 @@ namespace WorkTrack
 		{
 			if (this.CheckGuards(action))
 			{
-				var e = new WorkEventArgs(action.Hours, action.Date, action.Employee);
+				var e = new WorkEventArgs(action.Hours, action.Date, action.Employee, action.TaskAddress);
 				this.TrackedWork?.Invoke(this, e);
 			}
 
@@ -69,6 +68,7 @@ namespace WorkTrack
 			{
 				return this.trackGuards.Add(action.Guard);
 			}
+
 			return false;
 		}
 

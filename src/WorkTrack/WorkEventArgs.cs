@@ -1,21 +1,24 @@
 ﻿using System;
 using ContractsCore;
 
-namespace WorkTrack.WorkEventsArgs
+namespace WorkTrack
 {
 	public class WorkEventArgs: EventArgs, IComparable<WorkEventArgs>
 	{
-		public decimal Hours { get; set; }
+		public decimal Hours { get; }
 
-		public DateTime Date { get; set; }
+		public DateTime Date { get; }
 
-		public Address Employee { get; set; }
+		public Address Employee { get; }
 
-		public WorkEventArgs(decimal hours, DateTime date, Address employee)
+		public Address TaskAddress { get; }
+
+		public WorkEventArgs(decimal hours, DateTime date, Address employee, Address taskAddress = null)
 		{
 			this.Date = date;
 			this.Hours = hours;
 			this.Employee = employee ?? throw new NullReferenceException();
+			this.TaskAddress = taskAddress;
 		}
 
 		public int CompareTo(WorkEventArgs other)

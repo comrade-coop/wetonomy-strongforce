@@ -31,7 +31,7 @@ namespace TokenSystem.TokenFlow
 
 		protected TokenManager TokenManager { get; }
 
-		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens);
+		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens, object options = null);
 
 		protected override bool HandleReceivedAction(Action action)
 		{
