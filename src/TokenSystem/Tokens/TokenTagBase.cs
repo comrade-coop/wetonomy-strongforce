@@ -22,8 +22,8 @@ namespace TokenSystem.Tokens
 			return this.tagType;
 		}
 
-		public abstract object Value();
+		public abstract object GetValue();
 
-		public abstract bool Value(object value);
+		public abstract bool SetValue(object value);
 	}
 }
