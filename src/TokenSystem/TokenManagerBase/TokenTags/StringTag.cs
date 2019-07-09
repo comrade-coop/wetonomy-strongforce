@@ -15,15 +15,15 @@ namespace TokenSystem.TokenManagerBase.TokenTags
 
 		public override int CompareTo(TokenTagBase obj)
 		{
-			return (this.value as string).CompareTo(obj.Value() as string);
+			return (this.value as string).CompareTo(obj.GetValue() as string);
 		}
 
-		public override object Value()
+		public override object GetValue()
 		{
 			return this.value.ToString();
 		}
 
-		public override bool Value(object value)
+		public override bool SetValue(object value)
 		{
 			this.value = value;
 			return true;
