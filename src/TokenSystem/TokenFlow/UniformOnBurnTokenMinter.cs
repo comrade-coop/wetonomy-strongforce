@@ -20,7 +20,7 @@ namespace TokenSystem.TokenFlow
 		public UniformOnBurnTokenMinter(
 			Address address,
 			TokenManager tokenManager,
-			IList<Address> recipients)
+			ISet<Address> recipients)
 			: base(address, tokenManager, recipients)
 		{
 		}

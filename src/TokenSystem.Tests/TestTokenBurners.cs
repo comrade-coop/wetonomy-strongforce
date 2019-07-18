@@ -8,7 +8,6 @@ using ContractsCore.Permissions;
 using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
-using TokenSystem.TokenManagerBase.TokenTags;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -89,12 +88,12 @@ namespace TokenSystem.Tests
 				sender,
 				receiver);
 
-			BigInteger balanceReceiverBefore = this.tokenManager.TaggedBalanceOf(receiver).TotalTokens;
+			BigInteger balanceReceiverBefore = this.tokenManager.TaggedBalanceOf(receiver).TotalBalance;
 
 			this.permissionManager.ExecuteAction(mintAction);
 			this.permissionManager.ExecuteAction(transferAction);
 
-			BigInteger balanceReceiverAfter = this.tokenManager.TaggedBalanceOf(receiver).TotalTokens;
+			BigInteger balanceReceiverAfter = this.tokenManager.TaggedBalanceOf(receiver).TotalBalance;
 			Assert.Equal(balanceReceiverBefore, balanceReceiverAfter);
 		}
 	}

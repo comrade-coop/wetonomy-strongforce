@@ -1,8 +1,10 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Numerics;
 using ContractsCore;
-using ContractsCore.Actions;
+using TokenSystem.Exceptions;
+using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenManagerBase.Actions
 {
@@ -15,6 +17,13 @@ namespace TokenSystem.TokenManagerBase.Actions
 			Address to)
 			: base(hash, target)
 		{
+			if (to == null)
+			{
+				throw new ArgumentNullException(nameof(to));
+			}
+
+			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
+
 			this.Amount = amount;
 			this.To = to;
 		}

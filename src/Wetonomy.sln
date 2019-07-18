@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TokenSystem", "TokenSystem\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TokenSystem.Tests", "TokenSystem.Tests\TokenSystem.Tests.csproj", "{2C473ECD-2A92-4B7D-95A9-6E94BD4C00A5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Members", "Members\Members.csproj", "{FCC17143-6C1F-4D7F-B23D-FB2743B31386}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Membership", "Membership\Membership.csproj", "{FCC17143-6C1F-4D7F-B23D-FB2743B31386}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Members.Tests", "Members.Tests\Members.Tests.csproj", "{AD5768A3-475E-42B6-B0AE-B610ECA15BB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Membership.Tests", "Membership.Tests\Membership.Tests.csproj", "{AD5768A3-475E-42B6-B0AE-B610ECA15BB3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTrack", "WorkTrack\WorkTrack.csproj", "{547CC2F8-4E8E-46D8-9895-AE31346D0F31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTracker", "WorkTracker\WorkTracker.csproj", "{547CC2F8-4E8E-46D8-9895-AE31346D0F31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTrackTests", "WorkTrackTests\WorkTrackTests.csproj", "{265BE560-2B64-49BB-BEAA-32587556DA46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkTracker.Tests", "WorkTracker.Tests\WorkTracker.Tests.csproj", "{265BE560-2B64-49BB-BEAA-32587556DA46}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskSystem", "TaskSystem\TaskSystem.csproj", "{EB1BFE56-8E63-445E-923B-F8D64A66F2EF}"
 EndProject

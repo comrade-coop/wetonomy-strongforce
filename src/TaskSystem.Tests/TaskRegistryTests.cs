@@ -7,8 +7,7 @@ using ContractsCore.Actions;
 using ContractsCore.Permissions;
 using TaskSystem.Actions;
 using TokenSystem.TokenManagerBase;
-using WorkTrack;
-using WorkTrack.Actions;
+using WorkTracker.Actions;
 using Xunit;
 
 namespace TaskSystem.Tests
@@ -21,7 +20,7 @@ namespace TaskSystem.Tests
 		private readonly TaskRegistry taskRegistry;
 		private readonly SplitterPerTaskHoursMock splitterPerHours;
 		private readonly ContractExecutor permissionManager;
-		private readonly WorkTracker workTracker;
+		private readonly WorkTracker.WorkTracker workTracker;
 
 		public TaskRegistryTests()
 		{
@@ -29,15 +28,18 @@ namespace TaskSystem.Tests
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
-			this.workTracker = new WorkTracker(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
+			this.workTracker = new WorkTracker.WorkTracker(this.addressFactory.Create(), this.contractRegistry,
+				this.permissionManager.Address);
 			this.tokenManager = new TokenManager(
 				this.addressFactory.Create(),
 				this.permissionManager.Address,
 				this.contractRegistry,
 				tokenTagger,
 				tokenPicker);
-			this.splitterPerHours = new SplitterPerTaskHoursMock(this.addressFactory.Create(), this.tokenManager, this.workTracker);
-			this.taskRegistry = new TaskRegistry(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address, this.splitterPerHours.Address);
+			this.splitterPerHours =
+				new SplitterPerTaskHoursMock(this.addressFactory.Create(), this.tokenManager.Address, this.workTracker);
+			this.taskRegistry = new TaskRegistry(this.addressFactory.Create(), this.contractRegistry,
+				this.permissionManager.Address, this.splitterPerHours.Address);
 			this.contractRegistry.RegisterContract(this.taskRegistry);
 			this.contractRegistry.RegisterContract(this.permissionManager);
 			this.contractRegistry.RegisterContract(this.tokenManager);
@@ -111,7 +113,8 @@ namespace TaskSystem.Tests
 
 			// work traker
 			var perm = new Permission(typeof(TrackWorkAction));
-			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm, this.permissionManager.Address);
+			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 		}
 

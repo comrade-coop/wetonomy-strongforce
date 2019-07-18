@@ -16,7 +16,8 @@ namespace TaskSystem
 
 		public IDictionary<Address, BigInteger> TokenManagersToBalances { get; protected set; }
 
-		public TokenRelay(Address address, ContractRegistry registry, Address permissionManager, Address receiver, IDictionary<Address, BigInteger> tokenManagers = null)
+		public TokenRelay(Address address, ContractRegistry registry, Address permissionManager, Address receiver,
+			IDictionary<Address, BigInteger> tokenManagers = null)
 			: base(address, registry, permissionManager)
 		{
 			if (receiver.CompareTo(this.Address) == 0)
@@ -52,11 +53,11 @@ namespace TaskSystem
 		{
 			if (this.TokenManagersToBalances.ContainsKey(action.Origin))
 			{
-				this.TokenManagersToBalances[action.Origin] += action.Tokens.TotalTokens;
+				this.TokenManagersToBalances[action.Origin] += action.Tokens.TotalBalance;
 			}
 			else
 			{
-				this.TokenManagersToBalances.Add(action.Origin, action.Tokens.TotalTokens);
+				this.TokenManagersToBalances.Add(action.Origin, action.Tokens.TotalBalance);
 			}
 
 			return true;
@@ -68,7 +69,8 @@ namespace TaskSystem
 			{
 				if (managerToBalance.Value > 0)
 				{
-					var transfer = new TransferAction(string.Empty, managerToBalance.Key, managerToBalance.Value, this.Address, this.TokenReceiver);
+					var transfer = new TransferAction(string.Empty, managerToBalance.Key, managerToBalance.Value,
+						this.Address, this.TokenReceiver);
 					this.OnSend(transfer);
 				}
 			}

@@ -10,7 +10,6 @@ using TokenSystem.Exceptions;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
-using TokenSystem.TokenManagerBase.TokenTags;
 using TokenSystem.Tokens;
 using Xunit;
 
@@ -66,12 +65,12 @@ namespace TokenSystem.Tests
 		public void TaggedBalance_WhenTokenManagerHasBeenInstantiated_ShouldHaveAllBalancesToZero()
 		{
 			IReadOnlyTaggedTokens taggedBalance = this.tokenManager.TaggedTotalBalance();
-			Assert.Equal(0, taggedBalance.TotalTokens);
+			Assert.Equal(0, taggedBalance.TotalBalance);
 
 			this.addresses.ForEach(address =>
 			{
 				IReadOnlyTaggedTokens balance = this.tokenManager.TaggedBalanceOf(address);
-				Assert.Equal(0, balance.TotalTokens);
+				Assert.Equal(0, balance.TotalBalance);
 			});
 		}
 
@@ -83,8 +82,8 @@ namespace TokenSystem.Tests
 
 			this.MintTokens(amount, receiver);
 
-			Assert.Equal(amount, this.tokenManager.TaggedBalanceOf(receiver).TotalTokens);
-			Assert.Equal(amount, this.tokenManager.TaggedTotalBalance().TotalTokens);
+			Assert.Equal(amount, this.tokenManager.TaggedBalanceOf(receiver).TotalBalance);
+			Assert.Equal(amount, this.tokenManager.TaggedTotalBalance().TotalBalance);
 		}
 
 		[Theory]
@@ -108,8 +107,8 @@ namespace TokenSystem.Tests
 			this.MintTokens(mintAmount, from);
 			this.MintTokens(mintAmount, to);
 
-			BigInteger balanceFromBeforeTransfer = this.tokenManager.TaggedBalanceOf(from).TotalTokens;
-			BigInteger balanceToBeforeTransfer = this.tokenManager.TaggedBalanceOf(to).TotalTokens;
+			BigInteger balanceFromBeforeTransfer = this.tokenManager.TaggedBalanceOf(from).TotalBalance;
+			BigInteger balanceToBeforeTransfer = this.tokenManager.TaggedBalanceOf(to).TotalBalance;
 
 			this.TransferTokens(transferAmount, from, to);
 
@@ -118,10 +117,10 @@ namespace TokenSystem.Tests
 
 			Assert.Equal(
 				balanceFromBeforeTransfer - transferAmount,
-				balanceFromAfterTransfer.TotalTokens);
+				balanceFromAfterTransfer.TotalBalance);
 			Assert.Equal(
 				balanceToBeforeTransfer + transferAmount,
-				balanceOfToAfterTransfer.TotalTokens);
+				balanceOfToAfterTransfer.TotalBalance);
 		}
 
 		[Theory]
@@ -171,13 +170,13 @@ namespace TokenSystem.Tests
 			Address address = this.addresses[0];
 
 			this.MintTokens(mintAmount, address);
-			BigInteger balanceBeforeBurn = this.tokenManager.TaggedBalanceOf(address).TotalTokens;
+			BigInteger balanceBeforeBurn = this.tokenManager.TaggedBalanceOf(address).TotalBalance;
 
 			this.BurnTokens(burnAmount, address);
 
 			IReadOnlyTaggedTokens balanceAfterBurn = this.tokenManager.TaggedBalanceOf(address);
 
-			Assert.Equal(balanceBeforeBurn - burnAmount, balanceAfterBurn.TotalTokens);
+			Assert.Equal(balanceBeforeBurn - burnAmount, balanceAfterBurn.TotalBalance);
 		}
 
 		[Theory]
@@ -209,7 +208,7 @@ namespace TokenSystem.Tests
 			Address to = this.addresses[0];
 			this.tokenManager.TokensMinted += (sender, args) =>
 			{
-				Assert.Equal(mintAmount, args.Tokens.TotalTokens);
+				Assert.Equal(mintAmount, args.Tokens.TotalBalance);
 				Assert.Equal(to, args.To);
 			};
 
@@ -225,7 +224,7 @@ namespace TokenSystem.Tests
 
 			this.tokenManager.TokensTransferred += (sender, args) =>
 			{
-				Assert.Equal(transferAmount, args.Tokens.TotalTokens);
+				Assert.Equal(transferAmount, args.Tokens.TotalBalance);
 				Assert.Equal(from, args.From);
 				Assert.Equal(to, args.To);
 			};
@@ -242,7 +241,7 @@ namespace TokenSystem.Tests
 
 			this.tokenManager.TokensBurned += (sender, args) =>
 			{
-				Assert.Equal(burnAmount, args.Tokens.TotalTokens);
+				Assert.Equal(burnAmount, args.Tokens.TotalBalance);
 				Assert.Equal(from, args.From);
 			};
 

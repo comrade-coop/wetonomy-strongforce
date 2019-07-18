@@ -1,9 +1,11 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 using ContractsCore;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenManagerBase;
-using TokenSystem.TokenManagerBase.TokenTags;
 using TokenSystem.Tokens;
 using Xunit;
 
@@ -13,14 +15,14 @@ namespace TokenSystem.Tests
 	{
 		private readonly FungibleTokenTagger fungibleTagger = new FungibleTokenTagger();
 		private readonly FungibleTokenPicker fungiblePicker = new FungibleTokenPicker();
-		private readonly Address defaultAddress = AddressTestUtils.GenerateRandomAddresses(1)[0];
+		private readonly Address defaultAddress = AddressTestUtils.GenerateRandomAddress();
 
 		[Theory]
 		[InlineData(100)]
 		public void Tag_WhenPassedValidAddressAndAmount_TagsTokensEvenly(int amount)
 		{
 			IReadOnlyTaggedTokens tokens = this.fungibleTagger.Tag(this.defaultAddress, amount);
-			Assert.Equal(amount, tokens.GetAmountByTag(new StringTag(FungibleTokenTagger.DefaultTokenTag)));
+			Assert.Equal(amount, tokens.TotalBalanceByTag(FungibleTokenTagger.TokenTag));
 		}
 
 		[Theory]
@@ -37,7 +39,7 @@ namespace TokenSystem.Tests
 		{
 			IReadOnlyTaggedTokens tokens = this.fungibleTagger.Tag(this.defaultAddress, mintAmount);
 			IReadOnlyTaggedTokens pickedTokens = this.fungiblePicker.Pick(tokens, pickAmount);
-			Assert.Equal(pickAmount, pickedTokens.GetAmountByTag(new StringTag(FungibleTokenTagger.DefaultTokenTag)));
+			Assert.Equal(pickAmount, pickedTokens.TotalBalanceByTag(FungibleTokenTagger.TokenTag));
 		}
 
 		[Theory]

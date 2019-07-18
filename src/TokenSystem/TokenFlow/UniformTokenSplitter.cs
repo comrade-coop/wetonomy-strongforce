@@ -12,22 +12,22 @@ namespace TokenSystem.TokenFlow
 {
 	public class UniformTokenSplitter : TokenSplitter
 	{
-		public UniformTokenSplitter(Address address, TokenManager tokenManager)
+		public UniformTokenSplitter(Address address, Address tokenManager)
 			: base(address, tokenManager)
 		{
 		}
 
 		public UniformTokenSplitter(
 			Address address,
-			TokenManager tokenManager,
-			IList<Address> recipients)
+			Address tokenManager,
+			ISet<Address> recipients)
 			: base(address, tokenManager, recipients)
 		{
 		}
 
 		protected override void Split(IReadOnlyTaggedTokens receivedTokens, object options = null)
 		{
-			BigInteger splitAmount = receivedTokens.TotalTokens / this.Recipients.Count;
+			BigInteger splitAmount = receivedTokens.TotalBalance / this.Recipients.Count;
 
 			if (splitAmount <= 0)
 			{
@@ -36,9 +36,9 @@ namespace TokenSystem.TokenFlow
 
 			foreach (Address recipient in this.Recipients)
 			{
-				TransferAction transferAction = new TransferAction(
+				var transferAction = new TransferAction(
 					string.Empty,
-					this.TokenManager.Address,
+					this.TokenManager,
 					splitAmount,
 					this.Address,
 					recipient);

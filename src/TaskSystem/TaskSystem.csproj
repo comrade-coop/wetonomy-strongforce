@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TokenSystem\TokenSystem.csproj" />
-    <ProjectReference Include="..\WorkTrack\WorkTrack.csproj" />
+    <ProjectReference Include="..\WorkTracker\WorkTracker.csproj" />
   </ItemGroup>
 
 </Project>

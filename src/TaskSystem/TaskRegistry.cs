@@ -4,7 +4,6 @@ using ContractsCore;
 using ContractsCore.Contracts;
 using ContractsCore.Permissions;
 using TaskSystem.Actions;
-using WorkTrack;
 using Action = ContractsCore.Actions.Action;
 
 namespace TaskSystem
@@ -36,7 +35,7 @@ namespace TaskSystem
 					return HandleRemoveTask(removeAction);
 
 				case ChangeDefaultSplitterAction changeAction:
-					return HandleChangeDefaultSpletter(changeAction);
+					return this.HandleChangeDefaultSplitter(changeAction);
 
 				default: return false;
 			}
@@ -47,7 +46,8 @@ namespace TaskSystem
 			var task = action.Task;
 			if (task.TokenReceiver.CompareTo(this.DefaultTokenSplitter) != 0)
 			{
-				var changeReceiverAction = new ChnageTaskRewardReceiverAction(string.Empty, task.Address, this.DefaultTokenSplitter);
+				var changeReceiverAction =
+					new ChnageTaskRewardReceiverAction(string.Empty, task.Address, this.DefaultTokenSplitter);
 				this.OnSend(changeReceiverAction);
 			}
 
@@ -60,7 +60,7 @@ namespace TaskSystem
 			return this.tasksAddresses.Remove(action.TaskAddress);
 		}
 
-		protected bool HandleChangeDefaultSpletter(ChangeDefaultSplitterAction action)
+		protected bool HandleChangeDefaultSplitter(ChangeDefaultSplitterAction action)
 		{
 			this.DefaultTokenSplitter = action.Splitter;
 			return true;

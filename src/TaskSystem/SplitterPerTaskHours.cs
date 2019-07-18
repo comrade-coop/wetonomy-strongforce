@@ -7,7 +7,6 @@ using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
-using WorkTrack;
 using Action = ContractsCore.Actions.Action;
 
 namespace TaskSystem
@@ -18,15 +17,17 @@ namespace TaskSystem
 
 		public SplitterPerTaskHours(
 			Address address,
-			TokenManager tokenManager,
-			WorkTracker tracker,
-			IList<Address> recipients = null,
-			IDictionary<Address, IDictionary<Address, decimal>> tasksAddresToHours = null)
+			Address tokenManager,
+			WorkTracker.WorkTracker tracker,
+			ISet<Address> recipients = null,
+			IDictionary<Address, IDictionary<Address, decimal>> tasksAddressToHours = null)
 			: base(address, tokenManager, recipients)
 		{
-			var workTracker = tracker ?? throw new NullReferenceException();
+			WorkTracker.WorkTracker workTracker = tracker ?? throw new NullReferenceException();
+			//WTF????
 			new TaskWorkMediator(workTracker, this.TrackWorkHours);
-			this.TasksAddresToEmployeesHours = tasksAddresToHours ?? new SortedDictionary<Address, IDictionary<Address, decimal>>();
+			this.TasksAddresToEmployeesHours =
+				tasksAddressToHours ?? new SortedDictionary<Address, IDictionary<Address, decimal>>();
 		}
 
 		protected override bool HandleReceivedAction(Action action)
@@ -55,7 +56,7 @@ namespace TaskSystem
 			}
 			else
 			{
-				var emplooyees = new SortedDictionary<Address, decimal>() { { employeeAddress, amout } };
+				var emplooyees = new SortedDictionary<Address, decimal>() {{employeeAddress, amout}};
 				this.TasksAddresToEmployeesHours.Add(taskAddress, emplooyees);
 			}
 
@@ -64,7 +65,8 @@ namespace TaskSystem
 
 		protected bool HandleTokensReceived(TokensReceivedAction action)
 		{
-			IDictionary<Address, decimal> employeesToHours = this.TasksAddresToEmployeesHours.FirstOrDefault(task => task.Key == action.TokensSender).Value;
+			IDictionary<Address, decimal> employeesToHours = this.TasksAddresToEmployeesHours
+				.FirstOrDefault(task => task.Key == action.TokensSender).Value;
 			this.Split(action.Tokens, employeesToHours);
 			return true;
 		}
@@ -73,22 +75,22 @@ namespace TaskSystem
 		{
 			var employeesToHours = recipients as SortedDictionary<Address, decimal>;
 			decimal hours = employeesToHours.Sum(x => x.Value);
-			BigInteger splitBase = receivedTokens.TotalTokens / (BigInteger)hours;
+			BigInteger splitBase = receivedTokens.TotalBalance / (BigInteger) hours;
 
 			if (splitBase <= 0)
 			{
 				return;
 			}
 
-			foreach (var employee in employeesToHours)
+			foreach ((Address employee, var employeeHours) in employeesToHours)
 			{
-				var amount = splitBase * (BigInteger)employee.Value;
+				BigInteger amount = splitBase * (BigInteger) employeeHours;
 				var transferAction = new TransferAction(
 					string.Empty,
-					this.TokenManager.Address,
+					this.TokenManager,
 					amount,
 					this.Address,
-					employee.Key);
+					employee);
 				this.OnSend(transferAction);
 			}
 		}

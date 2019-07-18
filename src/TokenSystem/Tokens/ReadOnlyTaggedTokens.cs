@@ -1,5 +1,6 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -7,36 +8,33 @@ using TokenSystem.Exceptions;
 
 namespace TokenSystem.Tokens
 {
-	public class ReadOnlyTaggedTokens: IReadOnlyTaggedTokens
+	public class ReadOnlyTaggedTokens : IReadOnlyTaggedTokens
 	{
-		public ReadOnlyTaggedTokens(IDictionary<TokenTagBase, BigInteger> initialTagsToBalances)
+		public ReadOnlyTaggedTokens(IDictionary<IComparable, BigInteger> tagsToBalances)
 		{
-			foreach ((TokenTagBase _, BigInteger amount) in initialTagsToBalances)
-			{
-				if (amount < 0)
-				{
-					throw new NonPositiveTokenAmountException(amount);
-				}
-
-				this.TotalTokens += amount;
-			}
-
-			this.TagsToBalances = initialTagsToBalances;
+			this.Copy(tagsToBalances);
 		}
 
 		public ReadOnlyTaggedTokens()
-			: this(new SortedDictionary<TokenTagBase, BigInteger>())
+			: this(new SortedDictionary<IComparable, BigInteger>())
 		{
 		}
 
-		public BigInteger TotalTokens { get; protected set; }
+		public ReadOnlyTaggedTokens(IReadOnlyTaggedTokens tokens)
+		{
+			this.Copy(tokens);
+		}
 
-		protected IDictionary<TokenTagBase, BigInteger> TagsToBalances { get; set; }
 
-		public BigInteger GetAmountByTag(TokenTagBase tag)
+		public BigInteger TotalBalance { get; protected set; }
+
+		protected IDictionary<IComparable, BigInteger> TagsToBalances { get; } =
+			new SortedDictionary<IComparable, BigInteger>();
+
+		public BigInteger TotalBalanceByTag(IComparable tag)
 			=> this.TagsToBalances.ContainsKey(tag) ? this.TagsToBalances[tag] : 0;
 
-		public IEnumerator<KeyValuePair<TokenTagBase, BigInteger>> GetEnumerator()
+		public IEnumerator<KeyValuePair<IComparable, BigInteger>> GetEnumerator()
 		{
 			return this.TagsToBalances.GetEnumerator();
 		}
@@ -44,6 +42,20 @@ namespace TokenSystem.Tokens
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return this.GetEnumerator();
+		}
+
+		private void Copy(IEnumerable<KeyValuePair<IComparable, BigInteger>> tagsToBalances)
+		{
+			foreach ((IComparable tag, BigInteger amount) in tagsToBalances)
+			{
+				if (amount < 0)
+				{
+					throw new NonPositiveTokenAmountException(nameof(amount), amount);
+				}
+
+				this.TotalBalance += amount;
+				this.TagsToBalances[tag] = amount;
+			}
 		}
 	}
 }

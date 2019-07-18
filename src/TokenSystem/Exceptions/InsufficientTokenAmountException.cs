@@ -5,10 +5,12 @@ using System.Numerics;
 
 namespace TokenSystem.Exceptions
 {
-	public class InsufficientTokenAmountException : Exception
+	public class InsufficientTokenAmountException : ArgumentOutOfRangeException
 	{
-		public InsufficientTokenAmountException(BigInteger total, BigInteger requested)
-			: base($"Insufficient token amount requested: Requested {requested} from only {total}.")
+		public InsufficientTokenAmountException(string paramName, BigInteger total, BigInteger requested)
+			: base(
+				paramName,
+				$"Insufficient token amount requested: Requested {requested} from only {total}.")
 		{
 		}
 	}

@@ -1,14 +1,15 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
 namespace TokenSystem.Tokens
 {
-	public interface IReadOnlyTaggedTokens: IEnumerable<KeyValuePair<TokenTagBase, BigInteger>>
+	public interface IReadOnlyTaggedTokens : IEnumerable<KeyValuePair<IComparable, BigInteger>>
 	{
-		BigInteger TotalTokens { get; }
+		BigInteger TotalBalance { get; }
 
-		BigInteger GetAmountByTag(TokenTagBase tag);
+		BigInteger TotalBalanceByTag(IComparable tag);
 	}
 }

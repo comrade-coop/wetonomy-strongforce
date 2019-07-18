@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using ContractsCore;
+﻿using ContractsCore;
 using TokenSystem.TokenFlow;
-using WorkTrack;
+using WorkTracker;
 
 namespace TaskSystem
 {
@@ -15,7 +12,7 @@ namespace TaskSystem
 
 		private TrackWorkHours trackCallback;
 
-		public TaskWorkMediator(WorkTracker workTracker, TrackWorkHours callback)
+		public TaskWorkMediator(WorkTracker.WorkTracker workTracker, TrackWorkHours callback)
 		{
 			workTracker.TrackedWork += (_, actionArgs) => this.HandleTrackedWork(actionArgs);
 			this.trackCallback = callback;

@@ -8,6 +8,6 @@ namespace TokenSystem.TokenManagerBase
 {
 	public interface ITokenTagger
 	{
-		IReadOnlyTaggedTokens Tag(Address owner, BigInteger amount, object options = null);
+		IReadOnlyTaggedTokens Tag(Address owner, BigInteger amount);
 	}
 }

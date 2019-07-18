@@ -1,6 +1,7 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
@@ -8,7 +9,6 @@ using ContractsCore.Permissions;
 using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
-using TokenSystem.TokenManagerBase.TokenTags;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -21,13 +21,13 @@ namespace TokenSystem.Tests
 		private readonly TokenSplitter splitter;
 		private readonly TokenManager tokenManager;
 		private readonly ContractRegistry contractRegistry;
-		private readonly IList<Address> recipients;
+		private readonly ISet<Address> recipients;
 
 		private readonly ContractExecutor permissionManager;
 
 		public TestSplitter()
 		{
-			this.recipients = AddressTestUtils.GenerateRandomAddresses(RecipientCount);
+			this.recipients = AddressTestUtils.GenerateRandomAddresses(RecipientCount).ToHashSet();
 			this.contractRegistry = new ContractRegistry();
 			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
 
@@ -44,7 +44,7 @@ namespace TokenSystem.Tests
 
 			this.splitter = new UniformTokenSplitter(
 				this.addressFactory.Create(),
-				this.tokenManager,
+				this.tokenManager.Address,
 				this.recipients);
 
 			this.contractRegistry.RegisterContract(this.tokenManager);
@@ -56,7 +56,7 @@ namespace TokenSystem.Tests
 				new Permission(typeof(MintAction)),
 				this.permissionManager.Address);
 
-			AddressWildCard card = new AddressWildCard(){ this.splitter.Address, this.permissionManager.Address };
+			AddressWildCard card = new AddressWildCard() {this.splitter.Address, this.permissionManager.Address};
 
 			var transferPermission = new AddPermissionAction(
 				string.Empty,
@@ -82,7 +82,7 @@ namespace TokenSystem.Tests
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalTokens;
+				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}
@@ -110,7 +110,7 @@ namespace TokenSystem.Tests
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalTokens;
+				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}

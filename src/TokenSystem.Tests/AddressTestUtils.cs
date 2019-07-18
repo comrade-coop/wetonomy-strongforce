@@ -9,16 +9,22 @@ namespace TokenSystem.Tests
 	{
 		public const int DefaultAddressCount = 20;
 
-		public static List<Address> GenerateRandomAddresses(int addressCount = DefaultAddressCount)
+		public static Address GenerateRandomAddress()
 		{
 			var addressFactory = new RandomAddressFactory();
-			var generatedAddresses = new List<Address>(addressCount);
+			return addressFactory.Create();
+		}
+
+		public static List<Address> GenerateRandomAddresses(int addressCount = DefaultAddressCount)
+		{
+			var addresses = new List<Address>();
+
 			for (var i = 0; i < addressCount; i++)
 			{
-				generatedAddresses.Add(addressFactory.Create());
+				addresses.Add(GenerateRandomAddress());
 			}
 
-			return generatedAddresses;
+			return addresses;
 		}
 	}
 }

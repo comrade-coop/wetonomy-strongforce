@@ -1,16 +1,14 @@
-﻿using ContractsCore;
-using ContractsCore.Actions;
-using ContractsCore.Permissions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
+using ContractsCore;
+using ContractsCore.Actions;
+using ContractsCore.Permissions;
 using TaskSystem.Actions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
-using WorkTrack;
-using WorkTrack.Actions;
+using WorkTracker.Actions;
 using Xunit;
 
 namespace TaskSystem.Tests
@@ -23,7 +21,7 @@ namespace TaskSystem.Tests
 		private readonly TaskRegistry taskRegistry;
 		private readonly SplitterPerTaskHoursMock splitterPerHours;
 		private readonly ContractExecutor permissionManager;
-		private readonly WorkTracker workTracker;
+		private readonly WorkTracker.WorkTracker workTracker;
 
 		public SplitterPerTaskHoursTests()
 		{
@@ -31,15 +29,18 @@ namespace TaskSystem.Tests
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
-			this.workTracker = new WorkTracker(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
+			this.workTracker = new WorkTracker.WorkTracker(this.addressFactory.Create(), this.contractRegistry,
+				this.permissionManager.Address);
 			this.tokenManager = new TokenManager(
 				this.addressFactory.Create(),
 				this.permissionManager.Address,
 				this.contractRegistry,
 				tokenTagger,
 				tokenPicker);
-			this.splitterPerHours = new SplitterPerTaskHoursMock(this.addressFactory.Create(), this.tokenManager, this.workTracker);
-			this.taskRegistry = new TaskRegistry(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address, this.splitterPerHours.Address);
+			this.splitterPerHours =
+				new SplitterPerTaskHoursMock(this.addressFactory.Create(), this.tokenManager.Address, this.workTracker);
+			this.taskRegistry = new TaskRegistry(this.addressFactory.Create(), this.contractRegistry,
+				this.permissionManager.Address, this.splitterPerHours.Address);
 			this.contractRegistry.RegisterContract(this.taskRegistry);
 			this.contractRegistry.RegisterContract(this.permissionManager);
 			this.contractRegistry.RegisterContract(this.tokenManager);
@@ -105,7 +106,8 @@ namespace TaskSystem.Tests
 			var mintAction = new MintAction(string.Empty, this.tokenManager.Address, 160, address);
 			this.permissionManager.ExecuteAction(mintAction);
 
-			var transferAction = new TransferAction(string.Empty, this.tokenManager.Address, 160, address, task.Address);
+			var transferAction =
+				new TransferAction(string.Empty, this.tokenManager.Address, 160, address, task.Address);
 			this.permissionManager.ExecuteAction(transferAction);
 
 			Assert.Equal(160, task.TokenManagersToBalances[this.tokenManager.Address]);
@@ -131,9 +133,9 @@ namespace TaskSystem.Tests
 			var stageAction = new ChangeStageAction(string.Empty, task.Address, TaskStage.Finalized);
 			this.permissionManager.ExecuteAction(stageAction);
 
-			var employee1Tokens = this.tokenManager.TaggedBalanceOf(employee1).TotalTokens;
-			var employee2Tokens = this.tokenManager.TaggedBalanceOf(employee2).TotalTokens;
-			var employee3Tokens = this.tokenManager.TaggedBalanceOf(employee3).TotalTokens;
+			var employee1Tokens = this.tokenManager.TaggedBalanceOf(employee1).TotalBalance;
+			var employee2Tokens = this.tokenManager.TaggedBalanceOf(employee2).TotalBalance;
+			var employee3Tokens = this.tokenManager.TaggedBalanceOf(employee3).TotalBalance;
 			Assert.Equal(20, employee1Tokens);
 			Assert.Equal(60, employee2Tokens);
 			Assert.Equal(80, employee3Tokens);
@@ -141,26 +143,30 @@ namespace TaskSystem.Tests
 
 		private decimal TrackHours_ReturnsSplitterTrack(Address employee, Address task, decimal amount)
 		{
-			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, amount, new DateTime(2019, 5, 16), employee, task);
+			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, amount, new DateTime(2019, 5, 16),
+				employee, task);
 			this.permissionManager.ExecuteAction(track);
 			var hours = this.splitterPerHours.GetTasksAddresToEmployeesHoursPerAddress();
 			var employeeHours = hours.FirstOrDefault(x => x.Key.Equals(task)).Value
-									 .Where(y => y.Key.Equals(employee)).First().Value;
+				.Where(y => y.Key.Equals(employee)).First().Value;
 			return employeeHours;
 		}
 
 		private void InitializePermissions()
 		{
 			var perm = new Permission(typeof(TrackWorkAction));
-			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm, this.permissionManager.Address);
+			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 
 			perm = new Permission(typeof(MintAction));
-			addPerm = new AddPermissionAction(string.Empty, this.tokenManager.Address, perm, this.permissionManager.Address);
+			addPerm = new AddPermissionAction(string.Empty, this.tokenManager.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 
 			perm = new Permission(typeof(TransferAction));
-			addPerm = new AddPermissionAction(string.Empty, this.tokenManager.Address, perm, this.permissionManager.Address);
+			addPerm = new AddPermissionAction(string.Empty, this.tokenManager.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 		}
 
@@ -211,7 +217,8 @@ namespace TaskSystem.Tests
 			var header = "First Test Task";
 			var description = "The puropose of this task is to test task's fields";
 			managersToBalances.Add(this.tokenManager.Address, 0);
-			var task = new Task(address, this.contractRegistry, this.permissionManager.Address, this.splitterPerHours.Address, managersToBalances, 1, issuer,
+			var task = new Task(address, this.contractRegistry, this.permissionManager.Address,
+				this.splitterPerHours.Address, managersToBalances, 1, issuer,
 				header, description, true, null);
 			this.contractRegistry.RegisterContract(task);
 			return task;
