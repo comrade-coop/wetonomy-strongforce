@@ -1,16 +1,11 @@
 ﻿using ContractsCore;
-using TokenSystem.TokenFlow;
 using WorkTracker;
 
 namespace TaskSystem
 {
 	public class TaskWorkMediator
 	{
-		public TokenSplitter tokenSplitter { get; }
-
-		public delegate bool TrackWorkHours(Address employeeAddress, decimal amout, Address taskAddress);
-
-		private TrackWorkHours trackCallback;
+		private readonly TrackWorkHours trackCallback;
 
 		public TaskWorkMediator(WorkTracker.WorkTracker workTracker, TrackWorkHours callback)
 		{
@@ -18,7 +13,9 @@ namespace TaskSystem
 			this.trackCallback = callback;
 		}
 
-		protected void HandleTrackedWork(WorkEventArgs eventArgs)
+		public delegate bool TrackWorkHours(Address employeeAddress, decimal amount, Address taskAddress);
+
+		private void HandleTrackedWork(WorkEventArgs eventArgs)
 		{
 			this.trackCallback(eventArgs.Employee, eventArgs.Hours, eventArgs.TaskAddress);
 		}

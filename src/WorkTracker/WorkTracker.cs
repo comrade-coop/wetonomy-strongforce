@@ -10,8 +10,6 @@ namespace WorkTracker
 {
 	public class WorkTracker : AclPermittedContract
 	{
-		protected readonly HashSet<ITrackerGuard> TrackGuards;
-
 		public WorkTracker(Address address, ContractRegistry registry, Address permissionManager)
 			: base(address, registry, permissionManager)
 		{
@@ -19,6 +17,8 @@ namespace WorkTracker
 		}
 
 		public event EventHandler<WorkEventArgs> TrackedWork;
+
+		public ISet<ITrackerGuard> TrackGuards { get; }
 
 		protected override bool HandleReceivedAction(Action action)
 		{

@@ -8,9 +8,9 @@ namespace WorkTracker
 {
 	public class WorkTrackerController : AclPermittedContract
 	{
-		protected WorkEventLog eventLog;
+		private readonly WorkEventLog eventLog;
 
-		protected WorkTracker workTracker;
+		private readonly WorkTracker workTracker;
 
 		public WorkTrackerController(
 			Address address,
@@ -21,10 +21,10 @@ namespace WorkTracker
 			WorkTracker workTracker)
 			: base(address, registry, permissionManager)
 		{
-			this.workTracker = workTracker ??
-			                   new WorkTracker(null, null, this.Address);
-			this.eventLog = eventLog ??
-			                new WorkEventLog(30, new HashSet<WorkEventArgs>(), this.workTracker);
+			this.workTracker =
+				workTracker ?? new WorkTracker(null, null, this.Address);
+			this.eventLog =
+				eventLog ?? new WorkEventLog(30, new HashSet<WorkEventArgs>(), this.workTracker);
 		}
 
 		protected override bool HandleReceivedAction(Action action)

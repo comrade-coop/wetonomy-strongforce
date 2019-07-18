@@ -8,6 +8,7 @@ using WorkTracker.Actions;
 using WorkTracker.TrackerGuards;
 using Xunit;
 
+
 namespace WorkTrackTests
 {
 	public class WorkTrackerTest
@@ -16,7 +17,7 @@ namespace WorkTrackTests
 		private readonly ContractRegistry contractRegistry;
 		private readonly ContractExecutor permissionManager;
 		private readonly Address address;
-		private WorkTrackerMock workTracker;
+		private WorkTracker.WorkTracker workTracker;
 		private WorkEventLog eventLog;
 
 		public WorkTrackerTest()
@@ -24,7 +25,10 @@ namespace WorkTrackTests
 			this.address = this.addressFactory.Create();
 			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
 			this.contractRegistry = new ContractRegistry();
-			this.workTracker = new WorkTrackerMock(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
+			this.workTracker = new WorkTracker.WorkTracker(
+				this.addressFactory.Create(),
+				this.contractRegistry,
+				this.permissionManager.Address);
 
 			this.contractRegistry.RegisterContract(this.permissionManager);
 			this.contractRegistry.RegisterContract(this.workTracker);
@@ -92,7 +96,7 @@ namespace WorkTrackTests
 			var addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, guard);
 			this.permissionManager.ExecuteAction(addGuard);
 
-			Assert.Contains(guard, this.workTracker.GetGuards());
+			Assert.Contains(guard, this.workTracker.TrackGuards);
 		}
 
 		[Fact]
@@ -103,7 +107,7 @@ namespace WorkTrackTests
 			var addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, guard);
 			this.permissionManager.ExecuteAction(addGuard);
 
-			Assert.Equal(3, this.workTracker.GetGuards().Count);
+			Assert.Equal(3, this.workTracker.TrackGuards.Count);
 		}
 
 		[Fact]
@@ -112,18 +116,19 @@ namespace WorkTrackTests
 			var guard = new FutureDateTrackerGuard();
 			var addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, guard);
 			this.permissionManager.ExecuteAction(addGuard);
-			Assert.Contains(guard, this.workTracker.GetGuards());
+			Assert.Contains(guard, this.workTracker.TrackGuards);
 
 			var removeGuard = new RemoveTrackerGuardAction(string.Empty, this.workTracker.Address, guard);
 			this.permissionManager.ExecuteAction(removeGuard);
-			Assert.DoesNotContain(guard, this.workTracker.GetGuards());
+			Assert.DoesNotContain(guard, this.workTracker.TrackGuards);
 		}
 
 		[Fact]
 		public void TrackWork_WhenGuarded_AddTrackedWork()
 		{
 			this.InitializeEventLogAndGuards();
-			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 5, new DateTime(2019, 5, 16), this.address);
+			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 5, new DateTime(2019, 5, 16),
+				this.address);
 			this.permissionManager.ExecuteAction(track);
 			Assert.Contains(new WorkEventArgs(5, new DateTime(2019, 5, 16), this.address), this.eventLog.EventsHistory);
 		}
@@ -132,7 +137,8 @@ namespace WorkTrackTests
 		public void TrackWork_WhenGuarded_WhenHoursExeeds_ThrowsExeption()
 		{
 			this.InitializeEventLogAndGuards();
-			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 25, new DateTime(2019, 5, 16), this.address);
+			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 25, new DateTime(2019, 5, 16),
+				this.address);
 			Assert.Throws<WorkTrackInvalidException>(() => this.permissionManager.ExecuteAction(track));
 		}
 
@@ -140,22 +146,26 @@ namespace WorkTrackTests
 		public void TrackWork_WhenGuarded_WhenFutureDate_ThrowsExeption()
 		{
 			this.InitializeEventLogAndGuards();
-			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 25, DateTime.Today.AddDays(1), this.address);
+			var track = new TrackWorkAction(string.Empty, this.workTracker.Address, 25, DateTime.Today.AddDays(1),
+				this.address);
 			Assert.Throws<WorkTrackInvalidException>(() => this.permissionManager.ExecuteAction(track));
 		}
 
 		private void ConfigurePermissions()
 		{
 			var perm = new Permission(typeof(TrackWorkAction));
-			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm, this.permissionManager.Address);
+			var addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 
 			perm = new Permission(typeof(AddTrackerGuardAction));
-			addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm, this.permissionManager.Address);
+			addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 
 			perm = new Permission(typeof(RemoveTrackerGuardAction));
-			addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm, this.permissionManager.Address);
+			addPerm = new AddPermissionAction(string.Empty, this.workTracker.Address, perm,
+				this.permissionManager.Address);
 			this.permissionManager.ExecuteAction(addPerm);
 		}
 
@@ -169,14 +179,17 @@ namespace WorkTrackTests
 				new WorkEventArgs(5, new DateTime(2019, 5, 16), this.address),
 			};
 
-			this.workTracker = new WorkTrackerMock(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
+			this.workTracker = new WorkTracker.WorkTracker(this.addressFactory.Create(), this.contractRegistry,
+				this.permissionManager.Address);
 			this.contractRegistry.RegisterContract(this.workTracker);
 			this.ConfigurePermissions();
 
 			this.eventLog = new WorkEventLog(30, eventSet, this.workTracker);
-			var addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, new WeeklyTrackerGuard(this.eventLog));
+			var addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address,
+				new WeeklyTrackerGuard(this.eventLog));
 			this.permissionManager.ExecuteAction(addGuard);
-			addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, new MonthlyTrackerGuard(this.eventLog));
+			addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address,
+				new MonthlyTrackerGuard(this.eventLog));
 			this.permissionManager.ExecuteAction(addGuard);
 			addGuard = new AddTrackerGuardAction(string.Empty, this.workTracker.Address, new FutureDateTrackerGuard());
 			this.permissionManager.ExecuteAction(addGuard);

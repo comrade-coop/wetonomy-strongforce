@@ -9,7 +9,7 @@ namespace WorkTracker
 		{
 			this.Date = date;
 			this.Hours = hours;
-			this.Employee = employee ?? throw new NullReferenceException();
+			this.Employee = employee ?? throw new ArgumentNullException();
 			this.TaskAddress = taskAddress;
 		}
 

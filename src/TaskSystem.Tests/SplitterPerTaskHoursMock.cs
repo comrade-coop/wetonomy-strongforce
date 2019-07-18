@@ -17,6 +17,6 @@ namespace TaskSystem.Tests
 		}
 
 		public IDictionary<Address, IDictionary<Address, decimal>> GetTasksAddresToEmployeesHoursPerAddress()
-			=> this.TasksAddresToEmployeesHours;
+			=> this.TasksAddressToEmployeesHours;
 	}
 }

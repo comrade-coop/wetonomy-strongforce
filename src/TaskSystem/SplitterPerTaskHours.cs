@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ContractsCore;
 using TokenSystem.TokenFlow;
-using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
 using Action = ContractsCore.Actions.Action;
@@ -13,7 +11,7 @@ namespace TaskSystem
 {
 	public class SplitterPerTaskHours : TokenSplitter
 	{
-		protected IDictionary<Address, IDictionary<Address, decimal>> TasksAddresToEmployeesHours { get; set; }
+		protected IDictionary<Address, IDictionary<Address, decimal>> TasksAddressToEmployeesHours { get; }
 
 		public SplitterPerTaskHours(
 			Address address,
@@ -23,10 +21,8 @@ namespace TaskSystem
 			IDictionary<Address, IDictionary<Address, decimal>> tasksAddressToHours = null)
 			: base(address, tokenManager, recipients)
 		{
-			WorkTracker.WorkTracker workTracker = tracker ?? throw new NullReferenceException();
-			//WTF????
-			new TaskWorkMediator(workTracker, this.TrackWorkHours);
-			this.TasksAddresToEmployeesHours =
+			new TaskWorkMediator(tracker, this.TrackWorkHours);
+			this.TasksAddressToEmployeesHours =
 				tasksAddressToHours ?? new SortedDictionary<Address, IDictionary<Address, decimal>>();
 		}
 
@@ -37,43 +33,14 @@ namespace TaskSystem
 				case TokensReceivedAction tokenAction:
 					return this.HandleTokensReceived(tokenAction);
 
-				default: return false;
+				default:
+					return false;
 			}
-		}
-
-		protected bool TrackWorkHours(Address employeeAddress, decimal amout, Address taskAddress)
-		{
-			if (this.TasksAddresToEmployeesHours.ContainsKey(taskAddress))
-			{
-				if (this.TasksAddresToEmployeesHours[taskAddress].ContainsKey(employeeAddress))
-				{
-					this.TasksAddresToEmployeesHours[taskAddress][employeeAddress] += amout;
-				}
-				else
-				{
-					this.TasksAddresToEmployeesHours[taskAddress].Add(employeeAddress, amout);
-				}
-			}
-			else
-			{
-				var emplooyees = new SortedDictionary<Address, decimal>() {{employeeAddress, amout}};
-				this.TasksAddresToEmployeesHours.Add(taskAddress, emplooyees);
-			}
-
-			return true;
-		}
-
-		protected bool HandleTokensReceived(TokensReceivedAction action)
-		{
-			IDictionary<Address, decimal> employeesToHours = this.TasksAddresToEmployeesHours
-				.FirstOrDefault(task => task.Key == action.TokensSender).Value;
-			this.Split(action.Tokens, employeesToHours);
-			return true;
 		}
 
 		protected override void Split(IReadOnlyTaggedTokens receivedTokens, object recipients)
 		{
-			var employeesToHours = recipients as SortedDictionary<Address, decimal>;
+			var employeesToHours = (SortedDictionary<Address, decimal>) recipients;
 			decimal hours = employeesToHours.Sum(x => x.Value);
 			BigInteger splitBase = receivedTokens.TotalBalance / (BigInteger) hours;
 
@@ -93,6 +60,36 @@ namespace TaskSystem
 					employee);
 				this.OnSend(transferAction);
 			}
+		}
+
+		private bool TrackWorkHours(Address employeeAddress, decimal amount, Address taskAddress)
+		{
+			if (this.TasksAddressToEmployeesHours.ContainsKey(taskAddress))
+			{
+				if (this.TasksAddressToEmployeesHours[taskAddress].ContainsKey(employeeAddress))
+				{
+					this.TasksAddressToEmployeesHours[taskAddress][employeeAddress] += amount;
+				}
+				else
+				{
+					this.TasksAddressToEmployeesHours[taskAddress].Add(employeeAddress, amount);
+				}
+			}
+			else
+			{
+				var employees = new SortedDictionary<Address, decimal>() { { employeeAddress, amount } };
+				this.TasksAddressToEmployeesHours.Add(taskAddress, employees);
+			}
+
+			return true;
+		}
+
+		private bool HandleTokensReceived(TokensReceivedAction action)
+		{
+			IDictionary<Address, decimal> employeesToHours = this.TasksAddressToEmployeesHours
+				.FirstOrDefault(task => Equals(task.Key, action.TokensSender)).Value;
+			this.Split(action.Tokens, employeesToHours);
+			return true;
 		}
 	}
 }
