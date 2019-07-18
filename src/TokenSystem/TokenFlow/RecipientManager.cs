@@ -1,9 +1,10 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using ContractsCore;
-using ContractsCore.Actions;
 using ContractsCore.Contracts;
+using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenFlow
 {
@@ -19,7 +20,7 @@ namespace TokenSystem.TokenFlow
 		public RecipientManager(Address address, IList<Address> recipients)
 			: base(address)
 		{
-			this.recipients = recipients;
+			this.recipients = recipients ?? new List<Address>();
 		}
 
 		public IList<Address> Recipients => this.recipients;
@@ -46,7 +47,7 @@ namespace TokenSystem.TokenFlow
 
 		protected override bool HandleReceivedAction(Action action)
 		{
-			return false;
+			throw new NotImplementedException();
 		}
 	}
 }

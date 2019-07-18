@@ -1,12 +1,10 @@
-﻿using ContractsCore;
+﻿using System;
+using System.Collections.Generic;
+using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using WorkTrack;
 using WorkTrack.Actions;
-using WorkTrack.WorkEventsArgs;
 using Xunit;
 
 namespace WorkTrackTests

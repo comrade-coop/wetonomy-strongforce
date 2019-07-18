@@ -1,33 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ContractsCore;
 using TokenSystem.TokenFlow;
 using WorkTrack;
-using WorkTrack.WorkEventsArgs;
 
 namespace TaskSystem
 {
-	class TaskWorkMediator
+	public class TaskWorkMediator
 	{
-		public TokenSplitter tokenSplitter { get; private set; }
+		public TokenSplitter tokenSplitter { get; }
 
-		public delegate int PerformCalculation(int x, int y);
+		public delegate bool TrackWorkHours(Address employeeAddress, decimal amout, Address taskAddress);
 
-		public TaskWorkMediator(WorkTracker workTracker)
+		private TrackWorkHours trackCallback;
+
+		public TaskWorkMediator(WorkTracker workTracker, TrackWorkHours callback)
 		{
 			workTracker.TrackedWork += (_, actionArgs) => this.HandleTrackedWork(actionArgs);
+			this.trackCallback = callback;
 		}
 
 		protected void HandleTrackedWork(WorkEventArgs eventArgs)
 		{
-			TimeSpan diffResult = eventArgs.Date.Subtract(this.PeriodDate);
-			if ((decimal)diffResult.TotalDays >= this.HistoryClearPeriodInDays)
-			{
-				this.PeriodDate = eventArgs.Date;
-				this.EventsHistory = new HashSet<WorkEventArgs>();
-			}
-
-			this.EventsHistory.Add(eventArgs);
+			this.trackCallback(eventArgs.Employee, eventArgs.Hours, eventArgs.TaskAddress);
 		}
 	}
 }

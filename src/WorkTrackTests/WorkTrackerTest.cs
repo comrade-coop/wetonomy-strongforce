@@ -5,9 +5,7 @@ using ContractsCore.Actions;
 using ContractsCore.Permissions;
 using WorkTrack;
 using WorkTrack.Actions;
-using WorkTrack.Exceptions;
 using WorkTrack.TrackerGuards;
-using WorkTrack.WorkEventsArgs;
 using Xunit;
 
 namespace WorkTrackTests

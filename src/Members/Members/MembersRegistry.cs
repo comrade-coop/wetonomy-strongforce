@@ -33,7 +33,11 @@ namespace Members
 			var members = new HashSet<Member>();
 			foreach (var address in membersAddresses)
 			{
-				members.Add(this.registry.GetContract(address) as Member);
+				Member member = this.GetMember(address);
+				if (member != null)
+				{
+					members.Add(member);
+				}
 			}
 
 			return members;

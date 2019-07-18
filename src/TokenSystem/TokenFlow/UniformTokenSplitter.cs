@@ -25,7 +25,7 @@ namespace TokenSystem.TokenFlow
 		{
 		}
 
-		protected override void Split(IReadOnlyTaggedTokens receivedTokens)
+		protected override void Split(IReadOnlyTaggedTokens receivedTokens, object options = null)
 		{
 			BigInteger splitAmount = receivedTokens.TotalTokens / this.Recipients.Count;
 
