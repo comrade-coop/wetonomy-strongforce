@@ -5,7 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TaskSystem\TaskSystem.csproj" />
+        <AdditionalFiles Include="..\..\codeAnalysis\stylecop.json" Link="stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TaskSystem\TaskSystem.csproj" />
     </ItemGroup>
 
 </Project>
