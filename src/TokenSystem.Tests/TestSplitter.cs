@@ -70,38 +70,17 @@ namespace TokenSystem.Tests
 
 		[Theory]
 		[InlineData(100)]
-		public void Mint_WhenMintingToSplitter_ShouldSplitToRecipients(int splitAmount)
-		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.splitter.Address);
-			this.permissionManager.ExecuteAction(mintAction);
-
-			foreach (Address recipient in this.recipients)
-			{
-				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
-				Assert.Equal(expectedBalance, actualBalance);
-			}
-		}
-
-		[Theory]
-		[InlineData(100)]
 		public void Transfer_WhenTransferringToSplitter_ShouldSplitToRecipients(int splitAmount)
 		{
 			var mintAction = new MintAction(
 				string.Empty,
 				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager.Address);
+				splitAmount);
 
 			var transferAction = new TransferAction(
 				string.Empty,
 				this.tokenManager.Address,
 				splitAmount,
-				this.permissionManager.Address,
 				this.splitter.Address);
 
 			this.permissionManager.ExecuteAction(mintAction);

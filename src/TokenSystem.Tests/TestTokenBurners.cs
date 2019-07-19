@@ -56,11 +56,11 @@ namespace TokenSystem.Tests
 		}
 
 		[Fact]
-		public void Transfer_WhenUsingOnTransferBurner_BurnsCorrectAmountFromReceiver()
+		public void Transfer_BurnsAllTokens()
 		{
-			var burner = new OnTransferTokenBurner(
+			var burner = new TokenBurner(
 				this.addressFactory.Create(),
-				this.tokenManager);
+				this.tokenManager.Address);
 
 			this.contractRegistry.RegisterContract(burner);
 
@@ -72,29 +72,23 @@ namespace TokenSystem.Tests
 
 			this.permissionManager.ExecuteAction(burnPermissionAction);
 
-			Address sender = this.addresses[3];
-			Address receiver = this.addresses[4];
 			const int expectedBurnAmount = 100;
 
 			var mintAction = new MintAction(
 				string.Empty,
 				this.tokenManager.Address,
-				expectedBurnAmount,
-				sender);
+				expectedBurnAmount);
 			var transferAction = new TransferAction(
 				string.Empty,
 				this.tokenManager.Address,
 				expectedBurnAmount,
-				sender,
-				receiver);
-
-			BigInteger balanceReceiverBefore = this.tokenManager.TaggedBalanceOf(receiver).TotalBalance;
+				burner.Address);
 
 			this.permissionManager.ExecuteAction(mintAction);
 			this.permissionManager.ExecuteAction(transferAction);
 
-			BigInteger balanceReceiverAfter = this.tokenManager.TaggedBalanceOf(receiver).TotalBalance;
-			Assert.Equal(balanceReceiverBefore, balanceReceiverAfter);
+			BigInteger balanceBurner = this.tokenManager.TaggedBalanceOf(burner.Address).TotalBalance;
+			Assert.Equal(0, balanceBurner);
 		}
 	}
 }

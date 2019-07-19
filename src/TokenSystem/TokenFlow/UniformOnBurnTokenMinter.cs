@@ -27,17 +27,16 @@ namespace TokenSystem.TokenFlow
 
 		protected override void Mint(BigInteger transferAmount)
 		{
-			BigInteger mintAmountPerRecipient = transferAmount / this.Recipients.Count;
-
-			foreach (Address recipient in this.Recipients)
-			{
-				var mintAction = new MintAction(
-					string.Empty,
-					this.TokenManager.Address,
-					mintAmountPerRecipient,
-					recipient);
-				this.OnSend(mintAction);
-			}
+//			BigInteger mintAmountPerRecipient = transferAmount / this.Recipients.Count;
+//
+//			foreach (Address recipient in this.Recipients)
+//			{
+//				var mintAction = new MintAction(
+//					string.Empty,
+//					this.TokenManager.Address,
+//					mintAmountPerRecipient);
+//				this.OnSend(mintAction);
+//			}
 		}
 	}
 }

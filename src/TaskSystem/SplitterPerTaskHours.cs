@@ -56,7 +56,6 @@ namespace TaskSystem
 					string.Empty,
 					this.TokenManager,
 					amount,
-					this.Address,
 					employee);
 				this.OnSend(transferAction);
 			}
@@ -77,7 +76,7 @@ namespace TaskSystem
 			}
 			else
 			{
-				var employees = new SortedDictionary<Address, decimal>() { { employeeAddress, amount } };
+				var employees = new SortedDictionary<Address, decimal>() {{employeeAddress, amount}};
 				this.TasksAddressToEmployeesHours.Add(taskAddress, employees);
 			}
 

@@ -77,7 +77,6 @@ namespace TaskSystem
 						string.Empty,
 						managerToBalance.Key,
 						managerToBalance.Value,
-						this.Address,
 						this.TokenReceiver);
 					this.OnSend(transfer);
 				}

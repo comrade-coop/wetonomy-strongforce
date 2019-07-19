@@ -29,7 +29,9 @@ namespace TaskSystem.Tests
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
 			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
-			this.workTracker = new WorkTracker.WorkTracker(this.addressFactory.Create(), this.contractRegistry,
+			this.workTracker = new WorkTracker.WorkTracker(
+				this.addressFactory.Create(),
+				this.contractRegistry,
 				this.permissionManager.Address);
 			this.tokenManager = new TokenManager(
 				this.addressFactory.Create(),
@@ -39,8 +41,11 @@ namespace TaskSystem.Tests
 				tokenPicker);
 			this.splitterPerHours =
 				new SplitterPerTaskHoursMock(this.addressFactory.Create(), this.tokenManager.Address, this.workTracker);
-			this.taskRegistry = new TaskRegistry(this.addressFactory.Create(), this.contractRegistry,
-				this.permissionManager.Address, this.splitterPerHours.Address);
+			this.taskRegistry = new TaskRegistry(
+				this.addressFactory.Create(),
+				this.contractRegistry,
+				this.permissionManager.Address,
+				this.splitterPerHours.Address);
 			this.contractRegistry.RegisterContract(this.taskRegistry);
 			this.contractRegistry.RegisterContract(this.permissionManager);
 			this.contractRegistry.RegisterContract(this.tokenManager);
@@ -52,8 +57,8 @@ namespace TaskSystem.Tests
 		[Fact]
 		public void TrackWorkForTask()
 		{
-			var task = this.CreateTask(null);
-			var employee = this.addressFactory.Create();
+			Task task = this.CreateTask(null);
+			Address employee = this.addressFactory.Create();
 			var employeeHours = this.TrackHours_ReturnsSplitterTrack(employee, task.Address, 5);
 
 			Assert.Equal(5M, employeeHours);
@@ -81,33 +86,16 @@ namespace TaskSystem.Tests
 		}
 
 		[Fact]
-		public void ReceiveMintedTokens()
+		public void ReceiveTransferredTokens()
 		{
 			var task = this.CreateTask(null);
 			this.CreateTokenInteractionPermissions(task.Address);
 
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				160,
-				task.Address);
-			this.permissionManager.ExecuteAction(mintAction);
-			Assert.Equal(160, task.TokenManagersToBalances[this.tokenManager.Address]);
-		}
-
-		[Fact]
-		public void ReceiveTransferedTokens()
-		{
-			var task = this.CreateTask(null);
-			var address = this.addressFactory.Create();
-			this.CreateTokenInteractionPermissions(task.Address);
-			this.CreateTokenInteractionPermissions(address);
-
-			var mintAction = new MintAction(string.Empty, this.tokenManager.Address, 160, address);
-			this.permissionManager.ExecuteAction(mintAction);
+			this.permissionManager.ExecuteAction(
+				new MintAction(string.Empty, this.tokenManager.Address, 160));
 
 			var transferAction =
-				new TransferAction(string.Empty, this.tokenManager.Address, 160, address, task.Address);
+				new TransferAction(string.Empty, this.tokenManager.Address, 160, task.Address);
 			this.permissionManager.ExecuteAction(transferAction);
 
 			Assert.Equal(160, task.TokenManagersToBalances[this.tokenManager.Address]);
@@ -119,8 +107,14 @@ namespace TaskSystem.Tests
 			var task = this.CreateTask(null);
 			this.CreateTokenInteractionPermissions(task.Address);
 
-			var mintAction = new MintAction(string.Empty, this.tokenManager.Address, 160, task.Address);
+			var mintAction = new MintAction(string.Empty, this.tokenManager.Address, 160);
 			this.permissionManager.ExecuteAction(mintAction);
+			this.permissionManager.ExecuteAction(
+				new TransferAction(
+					string.Empty,
+					this.tokenManager.Address,
+					160,
+					task.Address));
 
 			var employee1 = this.addressFactory.Create();
 			var employee2 = this.addressFactory.Create();

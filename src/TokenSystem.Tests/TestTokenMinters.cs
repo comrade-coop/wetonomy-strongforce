@@ -61,48 +61,48 @@ namespace TokenSystem.Tests
 			this.permissionManager.ExecuteAction(burnPermission);
 		}
 
-		[Fact]
-		public void Burn_WhenUsingUniformOnBurnMinter_MintsCorrectAmountToRecipients()
-		{
-			IList<Address> receivers = AddressTestUtils.GenerateRandomAddresses(5);
-			const int expectedMintAmount = 100;
-			var minter = new UniformOnBurnTokenMinter(
-				this.addressFactory.Create(),
-				this.tokenManager,
-				receivers.ToHashSet());
-
-			this.contractRegistry.RegisterContract(minter);
-
-			var mintPermissionAction = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(MintAction)),
-				minter.Address);
-
-			this.permissionManager.ExecuteAction(mintPermissionAction);
-
-			Address burnAddress = this.addresses[3];
-
-			int burnAmount = expectedMintAmount * receivers.Count;
-
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				burnAmount,
-				burnAddress);
-			var burnAction = new BurnAction(
-				string.Empty,
-				this.tokenManager.Address,
-				burnAmount,
-				burnAddress);
-
-			this.permissionManager.ExecuteAction(mintAction);
-			this.permissionManager.ExecuteAction(burnAction);
-
-			foreach (Address address in receivers)
-			{
-				Assert.Equal(expectedMintAmount, this.tokenManager.TaggedBalanceOf(address).TotalBalance);
-			}
-		}
+//		[Fact]
+//		public void Burn_WhenUsingUniformOnBurnMinter_MintsCorrectAmountToRecipients()
+//		{
+//			IList<Address> receivers = AddressTestUtils.GenerateRandomAddresses(5);
+//			const int expectedMintAmount = 100;
+//			var minter = new UniformOnBurnTokenMinter(
+//				this.addressFactory.Create(),
+//				this.tokenManager,
+//				receivers.ToHashSet());
+//
+//			this.contractRegistry.RegisterContract(minter);
+//
+//			var mintPermissionAction = new AddPermissionAction(
+//				string.Empty,
+//				this.tokenManager.Address,
+//				new Permission(typeof(MintAction)),
+//				minter.Address);
+//
+//			this.permissionManager.ExecuteAction(mintPermissionAction);
+//
+//			Address burnAddress = this.addresses[3];
+//
+//			int burnAmount = expectedMintAmount * receivers.Count;
+//
+//			var mintAction = new MintAction(
+//				string.Empty,
+//				this.tokenManager.Address,
+//				burnAmount,
+//				burnAddress);
+//			var burnAction = new BurnAction(
+//				string.Empty,
+//				this.tokenManager.Address,
+//				burnAmount,
+//				burnAddress);
+//
+//			this.permissionManager.ExecuteAction(mintAction);
+//			this.permissionManager.ExecuteAction(burnAction);
+//
+//			foreach (Address address in receivers)
+//			{
+//				Assert.Equal(expectedMintAmount, this.tokenManager.TaggedBalanceOf(address).TotalBalance);
+//			}
+//		}
 	}
 }

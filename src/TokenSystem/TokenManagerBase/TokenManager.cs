@@ -118,13 +118,13 @@ namespace TokenSystem.TokenManagerBase
 			switch (action)
 			{
 				case MintAction mintAction:
-					this.Mint(mintAction.Amount, mintAction.To);
+					this.Mint(mintAction.Amount, mintAction.Origin);
 					return true;
 
 				case TransferAction transferAction:
 					this.Transfer(
 						transferAction.Amount,
-						transferAction.From,
+						transferAction.Origin,
 						transferAction.To,
 						transferAction.CustomPicker);
 					return true;
@@ -132,7 +132,7 @@ namespace TokenSystem.TokenManagerBase
 				case BurnAction burnAction:
 					this.Burn(
 						burnAction.Amount,
-						burnAction.From,
+						burnAction.Origin,
 						burnAction.CustomPicker);
 					return true;
 

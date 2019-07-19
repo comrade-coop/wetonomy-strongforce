@@ -13,23 +13,14 @@ namespace TokenSystem.TokenManagerBase.Actions
 		public MintAction(
 			string hash,
 			Address target,
-			BigInteger amount,
-			Address to)
+			BigInteger amount)
 			: base(hash, target)
 		{
-			if (to == null)
-			{
-				throw new ArgumentNullException(nameof(to));
-			}
-
 			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
 
 			this.Amount = amount;
-			this.To = to;
 		}
 
 		public BigInteger Amount { get; }
-
-		public Address To { get; }
 	}
 }
