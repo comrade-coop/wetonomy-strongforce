@@ -7,7 +7,8 @@ namespace TaskSystem.Tests
 {
 	class ContractExecutor : Contract
 	{
-		public ContractExecutor(Address address) : base(address)
+		public ContractExecutor(Address address)
+			: base(address)
 		{
 		}
 

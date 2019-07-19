@@ -11,14 +11,14 @@ namespace TokenSystem.TokenFlow
 	public abstract class OnBurnTokenMinter : RecipientManager
 	{
 		public OnBurnTokenMinter(Address address, TokenManager tokenManager)
-			: this(address, tokenManager, new List<Address>())
+			: this(address, tokenManager, new HashSet<Address>())
 		{
 		}
 
 		public OnBurnTokenMinter(
 			Address address,
 			TokenManager tokenManager,
-			IList<Address> recipients)
+			ISet<Address> recipients)
 			: base(address, recipients)
 		{
 			this.TokenManager = tokenManager;
@@ -37,7 +37,7 @@ namespace TokenSystem.TokenFlow
 				return;
 			}
 
-			this.Mint(burnArgs.Tokens.TotalTokens);
+			this.Mint(burnArgs.Tokens.TotalBalance);
 		}
 	}
 }

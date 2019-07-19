@@ -1,9 +1,11 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Numerics;
 using ContractsCore;
-using ContractsCore.Actions;
+using TokenSystem.Exceptions;
 using TokenSystem.Tokens;
+using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenManagerBase.Actions
 {
@@ -17,6 +19,13 @@ namespace TokenSystem.TokenManagerBase.Actions
 			ITokenPicker customPicker = null)
 			: base(hash, target)
 		{
+			if (from == null)
+			{
+				throw new ArgumentNullException(nameof(from));
+			}
+
+			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
+
 			this.Amount = amount;
 			this.From = from;
 			this.CustomPicker = customPicker;

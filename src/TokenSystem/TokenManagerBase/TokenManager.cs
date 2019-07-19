@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ContractsCore;
-using ContractsCore.Actions;
 using ContractsCore.Contracts;
-using ContractsCore.Events;
 using ContractsCore.Exceptions;
 using ContractsCore.Permissions;
 using TokenSystem.TokenEventArgs;
@@ -16,13 +14,16 @@ using Action = ContractsCore.Actions.Action;
 
 namespace TokenSystem.TokenManagerBase
 {
-	public class TokenManager : AclPermittedContract, ITokenManager
+	public class TokenManager : AclPermittedContract
 	{
 		private readonly ITokenTagger tokenTagger;
 		private readonly ITokenPicker defaultTokenPicker;
 
-		private readonly IDictionary<Address, ITaggedTokens> holdersToBalances;
-		private readonly ITaggedTokens totalBalance;
+		private readonly IDictionary<Address, ITaggedTokens> holdersToBalances
+			= new Dictionary<Address, ITaggedTokens>();
+
+		private readonly ITaggedTokens totalBalance
+			= new TaggedTokens();
 
 		public TokenManager(
 			Address address,
@@ -33,8 +34,6 @@ namespace TokenSystem.TokenManagerBase
 			: base(address, registry, permissionManager)
 		{
 			this.tokenTagger = tokenTagger;
-			this.holdersToBalances = new Dictionary<Address, ITaggedTokens>();
-			this.totalBalance = new TaggedTokens();
 			this.defaultTokenPicker = defaultTokenPicker;
 		}
 
@@ -48,8 +47,6 @@ namespace TokenSystem.TokenManagerBase
 			: base(address, registry, permissionManager, acl)
 		{
 			this.tokenTagger = tokenTagger;
-			this.holdersToBalances = new Dictionary<Address, ITaggedTokens>();
-			this.totalBalance = new TaggedTokens();
 			this.defaultTokenPicker = defaultTokenPicker;
 		}
 
@@ -61,15 +58,25 @@ namespace TokenSystem.TokenManagerBase
 
 		public IReadOnlyTaggedTokens TaggedBalanceOf(Address tokenHolder)
 			=> this.holdersToBalances.ContainsKey(tokenHolder)
-				? this.holdersToBalances[tokenHolder]
-				: new TaggedTokens();
+				? new ReadOnlyTaggedTokens(this.holdersToBalances[tokenHolder])
+				: new ReadOnlyTaggedTokens();
 
 		public IReadOnlyTaggedTokens TaggedTotalBalance() => this.totalBalance;
+
+		protected void TrySendTokenAction(Action action)
+		{
+			try
+			{
+				this.OnSend(action);
+			}
+			catch (NoPermissionException e)
+			{
+			}
+		}
 
 		protected virtual void OnTokensMinted(IReadOnlyTaggedTokens tokens, Address to)
 		{
 			var mintedAction = new TokensMintedAction(string.Empty, to, tokens);
-
 			this.TrySendTokenAction(mintedAction);
 
 			var tokensMintedArgs = new TokensMintedEventArgs(tokens, to);
@@ -80,7 +87,6 @@ namespace TokenSystem.TokenManagerBase
 		{
 			var sentAction = new TokensSentAction(string.Empty, from, to, tokens);
 			var receivedAction = new TokensReceivedAction(string.Empty, to, from, tokens);
-
 			this.TrySendTokenAction(sentAction);
 			this.TrySendTokenAction(receivedAction);
 
@@ -90,13 +96,21 @@ namespace TokenSystem.TokenManagerBase
 
 		protected virtual void OnTokensBurned(IReadOnlyTaggedTokens tokens, Address from)
 		{
+			var burnedAction = new TokensBurnedAction(string.Empty, from, tokens);
+			this.TrySendTokenAction(burnedAction);
+
 			var burnArgs = new TokensBurnedEventArgs(tokens, from);
 			this.TokensBurned?.Invoke(this, burnArgs);
 		}
 
 		protected override object GetState()
 		{
-			return new object();
+			throw new NotImplementedException();
+		}
+
+		protected override void BulletTaken(List<Stack<Address>> ways, Action targetAction)
+		{
+			throw new NotImplementedException();
 		}
 
 		protected override bool HandleReceivedAction(Action action)
@@ -104,15 +118,22 @@ namespace TokenSystem.TokenManagerBase
 			switch (action)
 			{
 				case MintAction mintAction:
-					this.HandleMintAction(mintAction);
+					this.Mint(mintAction.Amount, mintAction.To);
 					return true;
 
 				case TransferAction transferAction:
-					this.HandleTransferAction(transferAction);
+					this.Transfer(
+						transferAction.Amount,
+						transferAction.From,
+						transferAction.To,
+						transferAction.CustomPicker);
 					return true;
 
 				case BurnAction burnAction:
-					this.HandleBurnAction(burnAction);
+					this.Burn(
+						burnAction.Amount,
+						burnAction.From,
+						burnAction.CustomPicker);
 					return true;
 
 				default:
@@ -122,13 +143,6 @@ namespace TokenSystem.TokenManagerBase
 
 		private void Mint(BigInteger amount, Address to)
 		{
-			if (to == null)
-			{
-				throw new ArgumentNullException(nameof(to));
-			}
-
-			TokensUtility.RequirePositiveAmount(amount);
-
 			IReadOnlyTaggedTokens newTokens = this.tokenTagger.Tag(to, amount);
 			this.AddToBalances(newTokens, to);
 
@@ -137,22 +151,10 @@ namespace TokenSystem.TokenManagerBase
 
 		private void Transfer(BigInteger amount, Address from, Address to, ITokenPicker customPicker = null)
 		{
-			if (from == null)
-			{
-				throw new ArgumentNullException(nameof(from));
-			}
-
-			if (to == null)
-			{
-				throw new ArgumentNullException(nameof(to));
-			}
-
 			if (from.Equals(to))
 			{
 				throw new ArgumentException("Addresses can't transfer to themselves");
 			}
-
-			TokensUtility.RequirePositiveAmount(amount);
 
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
@@ -165,13 +167,6 @@ namespace TokenSystem.TokenManagerBase
 
 		private void Burn(BigInteger amount, Address from, ITokenPicker customPicker = null)
 		{
-			if (from == null)
-			{
-				throw new ArgumentNullException(nameof(from));
-			}
-
-			TokensUtility.RequirePositiveAmount(amount);
-
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
 			IReadOnlyTaggedTokens tokensToBurn = customPicker.Pick(this.holdersToBalances[from], amount);
@@ -195,63 +190,6 @@ namespace TokenSystem.TokenManagerBase
 		{
 			this.holdersToBalances[holder].RemoveFromBalance(tokens);
 			this.totalBalance.RemoveFromBalance(tokens);
-		}
-
-		private void HandleMintAction(MintAction action)
-		{
-			this.CheckPermission(action);
-			this.Mint(action.Amount, action.To);
-		}
-
-		private void HandleTransferAction(TransferAction action)
-		{
-			if (!action.Sender.Equals(action.From))
-			{
-				this.CheckPermission(action);
-			}
-
-			this.Transfer(
-				action.Amount,
-				action.From,
-				action.To,
-				action.CustomPicker);
-		}
-
-		private void HandleBurnAction(BurnAction action)
-		{
-			if (!action.Sender.Equals(action.From))
-			{
-				this.CheckPermission(action);
-			}
-
-			this.Burn(
-				action.Amount,
-				action.From,
-				action.CustomPicker);
-		}
-
-		public virtual void TrySendTokenAction(Action action)
-		{
-			try
-			{
-				this.OnSend(action);
-			}
-			catch (NoPermissionException e)
-			{
-				if (typeof(TokenAction).IsAssignableFrom(e.Permission.Type))
-				{
-					Console.WriteLine(e);
-				}
-				else
-				{
-					throw e;
-				}
-			}
-		}
-
-		protected override void BulletTaken(List<Stack<Address>> ways, Action targetAction)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

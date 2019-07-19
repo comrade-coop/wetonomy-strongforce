@@ -1,32 +1,32 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using TokenSystem.Exceptions;
-using TokenSystem.TokenManagerBase.TokenTags;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManagerBase
 {
 	public class FungibleTokenPicker : ITokenPicker
 	{
-		public IReadOnlyTaggedTokens Pick(IReadOnlyTaggedTokens tokens, BigInteger amount, object options = null)
+		public IReadOnlyTaggedTokens Pick(IReadOnlyTaggedTokens tokens, BigInteger amount)
 		{
 			if (amount < 0)
 			{
-				throw new NonPositiveTokenAmountException(amount);
+				throw new NonPositiveTokenAmountException(nameof(amount), amount);
 			}
 
-			BigInteger availableTokens = tokens.GetAmountByTag(new StringTag(FungibleTokenTagger.DefaultTokenTag));
+			BigInteger availableTokens = tokens.TotalBalanceByTag(FungibleTokenTagger.TokenTag);
 
 			if (availableTokens < amount)
 			{
-				throw new InsufficientTokenAmountException(availableTokens, amount);
+				throw new InsufficientTokenAmountException(nameof(amount), availableTokens, amount);
 			}
 
-			var pickedTokens = new ReadOnlyTaggedTokens(new SortedDictionary<TokenTagBase, BigInteger>
+			var pickedTokens = new ReadOnlyTaggedTokens(new SortedDictionary<IComparable, BigInteger>
 			{
-				[new StringTag(FungibleTokenTagger.DefaultTokenTag)] = amount,
+				[FungibleTokenTagger.TokenTag] = amount,
 			});
 
 			return pickedTokens;

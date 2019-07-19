@@ -10,39 +10,32 @@ namespace TokenSystem.TokenFlow
 {
 	public abstract class RecipientManager : Contract
 	{
-		private readonly IList<Address> recipients;
-
 		public RecipientManager(Address address)
-			: this(address, new List<Address>())
+			: this(address, new HashSet<Address>())
 		{
 		}
 
-		public RecipientManager(Address address, IList<Address> recipients)
+		public RecipientManager(Address address, ISet<Address> recipients)
 			: base(address)
 		{
-			this.recipients = recipients ?? new List<Address>();
+			this.Recipients = recipients;
 		}
 
-		public IList<Address> Recipients => this.recipients;
+		public ISet<Address> Recipients { get; }
 
-		public void AddRecipient(Address recipient)
+		public bool AddRecipient(Address recipient)
 		{
-			if (this.recipients.Contains(recipient))
-			{
-				return;
-			}
-
-			this.recipients.Add(recipient);
+			return this.Recipients.Add(recipient);
 		}
 
 		public bool RemoveRecipient(Address recipient)
 		{
-			return this.recipients.Remove(recipient);
+			return this.Recipients.Remove(recipient);
 		}
 
 		protected override object GetState()
 		{
-			return new object();
+			throw new NotImplementedException();
 		}
 
 		protected override bool HandleReceivedAction(Action action)

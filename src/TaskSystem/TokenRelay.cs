@@ -12,19 +12,24 @@ namespace TaskSystem
 {
 	public abstract class TokenRelay : AclPermittedContract
 	{
-		public Address TokenReceiver { get; protected set; }
+		public Address TokenReceiver { get; private set; }
 
-		public IDictionary<Address, BigInteger> TokenManagersToBalances { get; protected set; }
+		public IDictionary<Address, BigInteger> TokenManagersToBalances { get; }
 
-		public TokenRelay(Address address, ContractRegistry registry, Address permissionManager, Address receiver, IDictionary<Address, BigInteger> tokenManagers = null)
+		public TokenRelay(
+			Address address,
+			ContractRegistry registry,
+			Address permissionManager,
+			Address receiver,
+			IDictionary<Address, BigInteger> tokenManagers = null)
 			: base(address, registry, permissionManager)
 		{
-			if (receiver.CompareTo(this.Address) == 0)
+			if (receiver.Equals(this.Address))
 			{
 				throw new UnallowedRewardReceiverException(this, receiver);
 			}
 
-			this.TokenReceiver = receiver ?? throw new UnallowedRewardReceiverException(this, null);
+			this.TokenReceiver = receiver;
 			this.TokenManagersToBalances = tokenManagers ?? new SortedDictionary<Address, BigInteger>();
 		}
 
@@ -52,11 +57,11 @@ namespace TaskSystem
 		{
 			if (this.TokenManagersToBalances.ContainsKey(action.Origin))
 			{
-				this.TokenManagersToBalances[action.Origin] += action.Tokens.TotalTokens;
+				this.TokenManagersToBalances[action.Origin] += action.Tokens.TotalBalance;
 			}
 			else
 			{
-				this.TokenManagersToBalances.Add(action.Origin, action.Tokens.TotalTokens);
+				this.TokenManagersToBalances.Add(action.Origin, action.Tokens.TotalBalance);
 			}
 
 			return true;
@@ -68,7 +73,12 @@ namespace TaskSystem
 			{
 				if (managerToBalance.Value > 0)
 				{
-					var transfer = new TransferAction(string.Empty, managerToBalance.Key, managerToBalance.Value, this.Address, this.TokenReceiver);
+					var transfer = new TransferAction(
+						string.Empty,
+						managerToBalance.Key,
+						managerToBalance.Value,
+						this.Address,
+						this.TokenReceiver);
 					this.OnSend(transfer);
 				}
 			}
@@ -76,7 +86,7 @@ namespace TaskSystem
 			return true;
 		}
 
-		protected bool HandleRewardReceiverChange(ChnageTaskRewardReceiverAction action)
+		private bool HandleRewardReceiverChange(ChnageTaskRewardReceiverAction action)
 		{
 			if (action.RewardReceiver.CompareTo(action.Target) == 0)
 			{

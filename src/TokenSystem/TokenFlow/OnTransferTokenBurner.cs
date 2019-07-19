@@ -52,7 +52,7 @@ namespace TokenSystem.TokenFlow
 				return;
 			}
 
-			this.Burn(transferredEventArgs.Tokens.TotalTokens, transferredEventArgs.To);
+			this.Burn(transferredEventArgs.Tokens.TotalBalance, transferredEventArgs.To);
 		}
 	}
 }

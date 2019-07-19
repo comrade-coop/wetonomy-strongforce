@@ -15,21 +15,21 @@ namespace TokenSystem.TokenFlow
 	{
 		public TokenSplitter(
 			Address address,
-			TokenManager tokenManager)
-			: this(address, tokenManager, new List<Address>())
+			Address tokenManager)
+			: this(address, tokenManager, new HashSet<Address>())
 		{
 		}
 
 		public TokenSplitter(
 			Address address,
-			TokenManager tokenManager,
-			IList<Address> recipients)
+			Address tokenManager,
+			ISet<Address> recipients)
 			: base(address, recipients)
 		{
 			this.TokenManager = tokenManager;
 		}
 
-		protected TokenManager TokenManager { get; }
+		protected Address TokenManager { get; }
 
 		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens, object options = null);
 
@@ -50,7 +50,7 @@ namespace TokenSystem.TokenFlow
 
 		private void OnTokensReceived(Address tokenManagerAddress, IReadOnlyTaggedTokens tokens)
 		{
-			if (tokenManagerAddress.Equals(this.TokenManager.Address))
+			if (tokenManagerAddress.Equals(this.TokenManager))
 			{
 				this.Split(tokens);
 			}

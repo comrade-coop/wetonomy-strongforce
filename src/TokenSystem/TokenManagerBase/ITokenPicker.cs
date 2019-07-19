@@ -7,6 +7,6 @@ namespace TokenSystem.TokenManagerBase
 {
 	public interface ITokenPicker
 	{
-		IReadOnlyTaggedTokens Pick(IReadOnlyTaggedTokens tokens, BigInteger amount, object options = null);
+		IReadOnlyTaggedTokens Pick(IReadOnlyTaggedTokens tokens, BigInteger amount);
 	}
 }

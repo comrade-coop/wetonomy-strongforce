@@ -1,13 +1,13 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
 using System.Collections.Generic;
+using System.Linq;
 using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
 using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
-using TokenSystem.TokenManagerBase.TokenTags;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -69,7 +69,7 @@ namespace TokenSystem.Tests
 			var minter = new UniformOnBurnTokenMinter(
 				this.addressFactory.Create(),
 				this.tokenManager,
-				receivers);
+				receivers.ToHashSet());
 
 			this.contractRegistry.RegisterContract(minter);
 
@@ -101,7 +101,7 @@ namespace TokenSystem.Tests
 
 			foreach (Address address in receivers)
 			{
-				Assert.Equal(expectedMintAmount, this.tokenManager.TaggedBalanceOf(address).TotalTokens);
+				Assert.Equal(expectedMintAmount, this.tokenManager.TaggedBalanceOf(address).TotalBalance);
 			}
 		}
 	}
