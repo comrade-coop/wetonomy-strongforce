@@ -1,9 +1,7 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using ContractsCore;
+using TestUtils;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.Tokens;

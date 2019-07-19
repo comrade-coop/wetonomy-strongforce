@@ -1,11 +1,11 @@
-﻿using ContractsCore;
-using ContractsCore.Contracts;
-using System;
-using Action = ContractsCore.Actions.Action;
-
-namespace TokenSystem.Tests
+﻿namespace TestUtils
 {
-	class ContractExecutor : Contract
+	using System;
+	using ContractsCore;
+	using ContractsCore.Contracts;
+	using Action = ContractsCore.Actions.Action;
+
+	public class ContractExecutor : Contract
 	{
 		public ContractExecutor(Address address) : base(address)
 		{

@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
     <ProjectReference Include="..\WorkTracker\WorkTracker.csproj" />
   </ItemGroup>
 

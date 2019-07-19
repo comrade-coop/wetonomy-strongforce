@@ -22,8 +22,7 @@ namespace TokenSystem.TokenManagerBase
 		private readonly IDictionary<Address, ITaggedTokens> holdersToBalances
 			= new Dictionary<Address, ITaggedTokens>();
 
-		private readonly ITaggedTokens totalBalance
-			= new TaggedTokens();
+		private readonly ITaggedTokens totalBalance = new TaggedTokens();
 
 		public TokenManager(
 			Address address,

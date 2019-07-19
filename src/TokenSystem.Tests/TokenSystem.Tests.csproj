@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
         <ProjectReference Include="..\TokenSystem\TokenSystem.csproj" />
     </ItemGroup>
 

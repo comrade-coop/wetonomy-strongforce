@@ -1,13 +1,13 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
-using System.Collections.Generic;
-using ContractsCore;
-
-namespace TokenSystem.Tests
+namespace TestUtils
 {
+	using System.Collections.Generic;
+	using ContractsCore;
+
 	public static class AddressTestUtils
 	{
-		public const int DefaultAddressCount = 20;
+		private const int DefaultAddressCount = 20;
 
 		public static Address GenerateRandomAddress()
 		{

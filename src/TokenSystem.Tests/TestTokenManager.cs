@@ -6,6 +6,7 @@ using System.Numerics;
 using ContractsCore;
 using ContractsCore.Actions;
 using ContractsCore.Permissions;
+using TestUtils;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenEventArgs;
 using TokenSystem.TokenManagerBase;
