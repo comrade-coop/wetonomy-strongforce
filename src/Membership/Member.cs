@@ -36,28 +36,44 @@ namespace Membership
 		{
 			switch (action)
 			{
-				case TokensReceivedAction receivedAction:
-					return this.TokensReceived(receivedAction, ref this.addressToTokensReceivedStrategy);
-
 				case TokensMintedAction mintedAction:
 					return this.TokensReceived(mintedAction, ref this.addressToTokensMintedStrategy);
 
+				case TokensReceivedAction receivedAction:
+					return this.TokensReceived(receivedAction, ref this.addressToTokensReceivedStrategy);
+
 				case AddTokensMintedStrategyAction addAction:
 					this.addressToTokensMintedStrategy.Add(addAction.TokenManager, addAction.Strategy);
+					this.acl.AddPermission(
+						addAction.TokenManager,
+						new Permission(typeof(TokensMintedAction)),
+						this.Address);
 					return true;
 
 				case AddTokensReceivedStrategyAction addStrategyAction:
 					this.addressToTokensReceivedStrategy.Add(
 						addStrategyAction.TokenManager,
 						addStrategyAction.Strategy);
+					this.acl.AddPermission(
+						addStrategyAction.TokenManager,
+						new Permission(typeof(TokensReceivedAction)),
+						this.Address);
 					return true;
 
 				case RemoveTokensMintedStrategyAction removeAction:
 					this.addressToTokensMintedStrategy.Remove(removeAction.TokenManager);
+					this.acl.RemovePermission(
+						removeAction.TokenManager,
+						new Permission(typeof(TokensMintedAction)),
+						this.Address);
 					return true;
 
 				case RemoveTokensReceivedStrategyAction removeAction:
 					this.addressToTokensReceivedStrategy.Remove(removeAction.TokenManager);
+					this.acl.AddPermission(
+						removeAction.TokenManager,
+						new Permission(typeof(TokensReceivedAction)),
+						this.Address);
 					return true;
 
 				default:
@@ -87,7 +103,7 @@ namespace Membership
 			foreach ((IComparable key, BigInteger value) in action.Tokens)
 			{
 				var result = addressToStrategy[action.Sender]
-					.Execute(value, action.Sender, this.Address, key);
+					.Execute(value, action.Sender, key);
 				foreach (Action curAction in result)
 				{
 					this.OnSend(curAction);

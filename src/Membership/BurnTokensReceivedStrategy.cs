@@ -11,11 +11,10 @@ namespace Membership
 		public IEnumerable<Action> Execute(
 			BigInteger amount,
 			Address tokenManager,
-			Address from,
 			object tag = null)
 		{
-			var action = new BurnAction(string.Empty, tokenManager, amount, from);
-			return new List<Action>() {action};
+			var action = new BurnAction(string.Empty, tokenManager, amount);
+			return new List<Action>() { action };
 		}
 	}
 }

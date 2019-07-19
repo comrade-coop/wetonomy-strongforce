@@ -40,7 +40,6 @@ namespace TokenSystem.TokenFlow
 					string.Empty,
 					this.TokenManager,
 					splitAmount,
-					this.Address,
 					recipient);
 				this.OnSend(transferAction);
 			}

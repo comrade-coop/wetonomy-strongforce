@@ -15,25 +15,16 @@ namespace TokenSystem.TokenManagerBase.Actions
 			string hash,
 			Address target,
 			BigInteger amount,
-			Address from,
 			ITokenPicker customPicker = null)
 			: base(hash, target)
 		{
-			if (from == null)
-			{
-				throw new ArgumentNullException(nameof(from));
-			}
-
 			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
 
 			this.Amount = amount;
-			this.From = from;
 			this.CustomPicker = customPicker;
 		}
 
 		public BigInteger Amount { get; }
-
-		public Address From { get; }
 
 		public ITokenPicker CustomPicker { get; }
 	}

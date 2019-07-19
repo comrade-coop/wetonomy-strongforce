@@ -7,6 +7,6 @@ namespace Membership
 {
 	public interface ITokensReceivedStrategy
 	{
-		IEnumerable<Action> Execute(BigInteger amount, Address tokenManager, Address from, object tag = null);
+		IEnumerable<Action> Execute(BigInteger amount, Address tokenManager, object tag = null);
 	}
 }

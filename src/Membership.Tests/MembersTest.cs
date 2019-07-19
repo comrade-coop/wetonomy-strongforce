@@ -1,10 +1,11 @@
+using System;
 using ContractsCore;
-using TokenSystem.TokenManagerBase;
-using Xunit;
 using ContractsCore.Actions;
-using TokenSystem.TokenManagerBase.Actions;
 using ContractsCore.Permissions;
 using Membership.Actions;
+using TokenSystem.TokenManagerBase;
+using TokenSystem.TokenManagerBase.Actions;
+using Xunit;
 
 namespace Membership.Tests
 {
@@ -33,18 +34,27 @@ namespace Membership.Tests
 				this.tokenManager.Address,
 				new Permission(typeof(MintAction)),
 				this.permissionManager.Address);
+			var addTransferPermission = new AddPermissionAction(
+				string.Empty,
+				this.tokenManager.Address,
+				new Permission(typeof(TransferAction)),
+				this.permissionManager.Address);
 
 			this.contractRegistry.RegisterContract(this.permissionManager);
 			this.contractRegistry.RegisterContract(this.tokenManager);
 			this.permissionManager.ExecuteAction(addMintPermission);
+			this.permissionManager.ExecuteAction(addTransferPermission);
 		}
 
 		[Fact]
 		public void InitializeMember_BurnTokensOnMint_AssertEqual()
 		{
-			this.member = new Member(this.addressFactory.Create(), this.contractRegistry, this.permissionManager.Address);
+			this.member = new Member(
+				this.addressFactory.Create(),
+				this.contractRegistry,
+				this.permissionManager.Address);
 			this.contractRegistry.RegisterContract(this.member);
-			var mintedStrategy = new AddTokensMintedStrategyAction(
+			var mintedStrategy = new AddTokensReceivedStrategyAction(
 				string.Empty, this.member.Address, this.tokenManager.Address, new BurnTokensReceivedStrategy());
 
 			this.permissionManager.ExecuteAction(mintedStrategy);
@@ -63,15 +73,19 @@ namespace Membership.Tests
 				this.member.Address);
 			this.permissionManager.ExecuteAction(addTokenBurnPermission);
 
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				400,
-				this.member.Address);
-			this.permissionManager.ExecuteAction(mintAction);
+			this.permissionManager.ExecuteAction(
+				new MintAction(
+					string.Empty,
+					this.tokenManager.Address,
+					400));
+			this.permissionManager.ExecuteAction(
+				new TransferAction(
+					string.Empty,
+					this.tokenManager.Address,
+					400,
+					this.member.Address));
 
 			Assert.Equal(0, this.tokenManager.TaggedBalanceOf(this.member.Address).TotalBalance);
-
 		}
 	}
 }
