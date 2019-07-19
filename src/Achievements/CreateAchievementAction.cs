@@ -5,7 +5,11 @@ namespace Achievements
 {
 	public class CreateAchievementAction : Action
 	{
-		public CreateAchievementAction(string hash, Address target, Address achiever, AchievementMetaData metaData)
+		public CreateAchievementAction(
+			string hash,
+			Address target,
+			Address achiever,
+			AchievementMetaData metaData)
 			: base(hash, target)
 		{
 			this.Achiever = achiever;
