@@ -84,7 +84,7 @@ namespace Achievements
 		{
 			//TODO: Implement time limit for rewarding achievements
 			//(May need additional feature from StrongForce)
-			throw new System.NotImplementedException();
+			return true;
 		}
 	}
 }
