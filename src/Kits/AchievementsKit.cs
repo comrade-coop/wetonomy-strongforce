@@ -45,6 +45,11 @@ namespace Kits
 				this.ExchangeRate,
 				achievementsGroup);
 
+			registry.RegisterContract(allowanceToken);
+			registry.RegisterContract(debtToken);
+			registry.RegisterContract(achievements);
+			registry.RegisterContract(achievements);
+
 			// TODO: Add allowanceToken and debtToken to achievementsGroup
 
 			// TODO: Give achievementsGroup permissions to:
