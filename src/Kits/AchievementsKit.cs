@@ -6,21 +6,23 @@ namespace Kits
 {
 	public class AchievementsKit : IKit
 	{
-		public AchievementsKit(int allowanceDebtExchangeRate)
-		{
-			this.ExchangeRate = allowanceDebtExchangeRate;
-		}
+		private readonly int exchangeRate;
+		private Address[] initialMembers;
 
-		private int ExchangeRate { get; }
+		public AchievementsKit(int allowanceDebtExchangeRate, Address[] initialMembers)
+		{
+			this.exchangeRate = allowanceDebtExchangeRate;
+			this.initialMembers = initialMembers;
+		}
 
 		public void NewInstance(
 			ContractRegistry registry,
 			IAddressFactory addressFactory,
 			Address originAddress)
 		{
+			// Create tokens for organisation
 			var uniformTagger = new FungibleTokenTagger();
 			var uniformPicker = new FungibleTokenPicker();
-
 			var allowanceToken = new TokenManager(
 				addressFactory.Create(),
 				originAddress,
@@ -36,19 +38,22 @@ namespace Kits
 
 			// TODO: Create achievementsGroup
 			Address achievementsGroup = addressFactory.Create();
+
+			// Create achievementsFactory
 			var achievements = new AchievementFactory(
 				addressFactory.Create(),
 				registry,
 				originAddress,
 				allowanceToken.Address,
 				debtToken.Address,
-				this.ExchangeRate,
+				this.exchangeRate,
 				achievementsGroup);
 
 			registry.RegisterContract(allowanceToken);
 			registry.RegisterContract(debtToken);
 			registry.RegisterContract(achievements);
 			registry.RegisterContract(achievements);
+			// registry.RegisterContract(achievementsGroup);
 
 			// TODO: Add allowanceToken and debtToken to achievementsGroup
 
@@ -57,7 +62,12 @@ namespace Kits
 			// 2. Mint debtTokens
 			// 3. Transfer debtTokens
 
+			// TODO: Add voting contract
+			// Give permissions to voting for almost everything
+
 			// TODO: Create other groups which will be used in the organisation
+			// Give permissions to groups to transfer tokens to AchievementsGroup
+			// This should probably couple Tokens and Groups.. Needs discussion
 
 			// TODO: Add initial members to groups
 		}
