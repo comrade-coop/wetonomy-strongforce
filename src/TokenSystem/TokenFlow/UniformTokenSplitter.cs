@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Events;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -12,22 +12,29 @@ namespace TokenSystem.TokenFlow
 {
 	public class UniformTokenSplitter : TokenSplitter
 	{
-		public UniformTokenSplitter(Address address, Address tokenManager)
-			: base(address, tokenManager)
+		protected BigInteger LeftoverAmount { get; set; } = 0;
+
+		public override IDictionary<string, object> GetState()
 		{
+			var state = base.GetState();
+
+			state.Add("LeftoverAmount", this.LeftoverAmount);
+
+			return state;
 		}
 
-		public UniformTokenSplitter(
-			Address address,
-			Address tokenManager,
-			ISet<Address> recipients)
-			: base(address, tokenManager, recipients)
+		public override void SetState(IDictionary<string, object> state)
 		{
+			base.SetState(state);
+
+			this.LeftoverAmount = BigInteger.Parse(state.GetString("LeftoverAmount"));
 		}
 
-		protected override void Split(IReadOnlyTaggedTokens receivedTokens, object options = null)
+		protected override void Split(IReadOnlyTaggedTokens receivedTokens)
 		{
-			BigInteger splitAmount = receivedTokens.TotalBalance / this.Recipients.Count;
+			BigInteger amount = this.LeftoverAmount + receivedTokens.TotalBalance;
+			BigInteger splitAmount = amount / this.Recipients.Count;
+			this.LeftoverAmount = amount % this.Recipients.Count;
 
 			if (splitAmount <= 0)
 			{
@@ -36,13 +43,11 @@ namespace TokenSystem.TokenFlow
 
 			foreach (Address recipient in this.Recipients)
 			{
-				var transferAction = new TransferAction(
-					string.Empty,
-					this.TokenManager,
-					splitAmount,
-					this.Address,
-					recipient);
-				this.OnSend(transferAction);
+				this.SendAction(this.TokenManager, TransferAction.Type, new Dictionary<string, object>()
+				{
+					{ TransferAction.To, recipient.ToBase64String() },
+					{ TransferAction.Amount, splitAmount.ToString() },
+				});
 			}
 		}
 	}

@@ -2,26 +2,32 @@
 
 using System;
 using System.Collections.Generic;
-using ContractsCore;
-using ContractsCore.Contracts;
-using Action = ContractsCore.Actions.Action;
+using System.Linq;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
 
 namespace TokenSystem.TokenFlow
 {
 	public abstract class RecipientManager : Contract
 	{
-		public RecipientManager(Address address)
-			: this(address, new HashSet<Address>())
+		public ISet<Address> Recipients { get; private set; } = new HashSet<Address>();
+
+		public override IDictionary<string, object> GetState()
 		{
+			var state = base.GetState();
+
+			state.Add("Recipients", this.Recipients.Select(x => x.ToBase64String()).ToList());
+
+			return state;
 		}
 
-		public RecipientManager(Address address, ISet<Address> recipients)
-			: base(address)
+		public override void SetState(IDictionary<string, object> state)
 		{
-			this.Recipients = recipients;
-		}
+			base.SetState(state);
 
-		public ISet<Address> Recipients { get; }
+			this.Recipients = new HashSet<Address>(
+				state.GetList<string>("Recipients").Select(Address.FromBase64String));
+		}
 
 		public bool AddRecipient(Address recipient)
 		{
@@ -33,14 +39,14 @@ namespace TokenSystem.TokenFlow
 			return this.Recipients.Remove(recipient);
 		}
 
-		protected override object GetState()
+		protected override void Initialize(IDictionary<string, object> payload)
 		{
-			throw new NotImplementedException();
+			base.Initialize(payload);
+
+			this.Recipients = new HashSet<Address>(
+				payload.GetList<string>("Recipients").Select(Address.FromBase64String));
 		}
 
-		protected override bool HandleReceivedAction(Action action)
-		{
-			throw new NotImplementedException();
-		}
+		// protected override bool HandlePayloadAction(PayloadAction action)
 	}
 }

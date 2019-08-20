@@ -1,35 +1,16 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
 using System;
-using System.Numerics;
-using ContractsCore;
-using TokenSystem.Exceptions;
-using Action = ContractsCore.Actions.Action;
+using StrongForce.Core;
 
 namespace TokenSystem.TokenManagerBase.Actions
 {
-	public class MintAction : Action
+	public static class MintAction
 	{
-		public MintAction(
-			string hash,
-			Address target,
-			BigInteger amount,
-			Address to)
-			: base(hash, target)
-		{
-			if (to == null)
-			{
-				throw new ArgumentNullException(nameof(to));
-			}
+		public const string Type = "MintTokens";
 
-			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
+		public const string Amount = "Amount";
 
-			this.Amount = amount;
-			this.To = to;
-		}
-
-		public BigInteger Amount { get; }
-
-		public Address To { get; }
+		public const string To = "To";
 	}
 }

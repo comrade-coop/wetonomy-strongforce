@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using TokenSystem.Exceptions;
 
@@ -10,13 +11,13 @@ namespace TokenSystem.Tokens
 {
 	public class ReadOnlyTaggedTokens : IReadOnlyTaggedTokens
 	{
-		public ReadOnlyTaggedTokens(IDictionary<IComparable, BigInteger> tagsToBalances)
+		public ReadOnlyTaggedTokens(IDictionary<string, BigInteger> tagsToBalances)
 		{
 			this.Copy(tagsToBalances);
 		}
 
 		public ReadOnlyTaggedTokens()
-			: this(new SortedDictionary<IComparable, BigInteger>())
+			: this(new SortedDictionary<string, BigInteger>())
 		{
 		}
 
@@ -25,16 +26,32 @@ namespace TokenSystem.Tokens
 			this.Copy(tokens);
 		}
 
+		public ReadOnlyTaggedTokens(IDictionary<string, object> state)
+		{
+			this.Copy(state.Select(kv =>
+			{
+				return KeyValuePair.Create(
+					kv.Key,
+					BigInteger.Parse((string)kv.Value));
+			}));
+		}
 
 		public BigInteger TotalBalance { get; protected set; }
 
-		protected IDictionary<IComparable, BigInteger> TagsToBalances { get; } =
-			new SortedDictionary<IComparable, BigInteger>();
+		protected IDictionary<string, BigInteger> TagsToBalances { get; } =
+			new SortedDictionary<string, BigInteger>();
 
-		public BigInteger TotalBalanceByTag(IComparable tag)
+		public BigInteger TotalBalanceByTag(string tag)
 			=> this.TagsToBalances.ContainsKey(tag) ? this.TagsToBalances[tag] : 0;
 
-		public IEnumerator<KeyValuePair<IComparable, BigInteger>> GetEnumerator()
+		public IDictionary<string, object> GetState()
+		{
+			return this.TagsToBalances.ToDictionary(
+				kv => kv.Key.ToString(),
+				kv => (object)kv.Value.ToString());
+		}
+
+		public IEnumerator<KeyValuePair<string, BigInteger>> GetEnumerator()
 		{
 			return this.TagsToBalances.GetEnumerator();
 		}
@@ -44,9 +61,9 @@ namespace TokenSystem.Tokens
 			return this.GetEnumerator();
 		}
 
-		private void Copy(IEnumerable<KeyValuePair<IComparable, BigInteger>> tagsToBalances)
+		private void Copy(IEnumerable<KeyValuePair<string, BigInteger>> tagsToBalances)
 		{
-			foreach ((IComparable tag, BigInteger amount) in tagsToBalances)
+			foreach ((string tag, BigInteger amount) in tagsToBalances)
 			{
 				if (amount < 0)
 				{

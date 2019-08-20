@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using TokenSystem.Exceptions;
 
@@ -10,11 +11,21 @@ namespace TokenSystem.Tokens
 	public class TaggedTokens : ReadOnlyTaggedTokens, ITaggedTokens
 	{
 		public TaggedTokens()
-			: base(new SortedDictionary<IComparable, BigInteger>())
+			: base(new SortedDictionary<string, BigInteger>())
 		{
 		}
 
-		public void AddToBalance(IComparable tag, BigInteger amount)
+		public TaggedTokens(IReadOnlyTaggedTokens tokens)
+			: base(tokens)
+		{
+		}
+
+		public TaggedTokens(IDictionary<string, object> state)
+			: base(state)
+		{
+		}
+
+		public void AddToBalance(string tag, BigInteger amount)
 		{
 			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
 			if (!this.TagsToBalances.ContainsKey(tag))
@@ -28,13 +39,13 @@ namespace TokenSystem.Tokens
 
 		public void AddToBalance(IReadOnlyTaggedTokens tokens)
 		{
-			foreach ((IComparable tag, BigInteger amount) in tokens)
+			foreach ((string tag, BigInteger amount) in tokens)
 			{
 				this.AddToBalance(tag, amount);
 			}
 		}
 
-		public void RemoveFromBalance(IComparable tag, BigInteger amount)
+		public void RemoveFromBalance(string tag, BigInteger amount)
 		{
 			NonPositiveTokenAmountException.RequirePositiveAmount(amount);
 			if (!this.TagsToBalances.ContainsKey(tag))
@@ -48,7 +59,7 @@ namespace TokenSystem.Tokens
 
 		public void RemoveFromBalance(IReadOnlyTaggedTokens tokens)
 		{
-			foreach ((IComparable tag, BigInteger amount) in tokens)
+			foreach ((string tag, BigInteger amount) in tokens)
 			{
 				this.RemoveFromBalance(tag, amount);
 			}

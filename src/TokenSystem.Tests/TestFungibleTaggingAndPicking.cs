@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using ContractsCore;
+using StrongForce.Core;
 using TokenSystem.Exceptions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.Tokens;

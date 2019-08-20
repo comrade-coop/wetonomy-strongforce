@@ -2,9 +2,8 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Actions;
-using TokenSystem.TokenEventArgs;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -13,38 +12,43 @@ namespace TokenSystem.TokenFlow
 {
 	public abstract class TokenSplitter : RecipientManager
 	{
-		public TokenSplitter(
-			Address address,
-			Address tokenManager)
-			: this(address, tokenManager, new HashSet<Address>())
+		protected Address TokenManager { get; private set; }
+
+		public override IDictionary<string, object> GetState()
 		{
+			var state = base.GetState();
+
+			state.AddAddress("TokenManager", this.TokenManager);
+
+			return state;
 		}
 
-		public TokenSplitter(
-			Address address,
-			Address tokenManager,
-			ISet<Address> recipients)
-			: base(address, recipients)
+		public override void SetState(IDictionary<string, object> state)
 		{
-			this.TokenManager = tokenManager;
+			base.SetState(state);
+
+			this.TokenManager = state.GetAddress("TokenManager");
 		}
 
-		protected Address TokenManager { get; }
-
-		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens, object options = null);
-
-		protected override bool HandleReceivedAction(Action action)
+		protected override void Initialize(IDictionary<string, object> payload)
 		{
-			switch (action)
+			base.Initialize(payload);
+
+			this.TokenManager = payload.GetAddress("TokenManager");
+		}
+
+		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens);
+
+		protected override bool HandleEventAction(EventAction action)
+		{
+			switch (action.Type)
 			{
-				case TokensReceivedAction tokensReceivedAction:
-					this.OnTokensReceived(tokensReceivedAction.Sender, tokensReceivedAction.Tokens);
-					return true;
-				case TokensMintedAction tokensMintedAction:
-					this.OnTokensReceived(tokensMintedAction.Sender, tokensMintedAction.Tokens);
+				case TokensReceivedEvent.Type:
+					var tokens = action.Payload.GetDictionary(TokensReceivedEvent.Tokens);
+					this.OnTokensReceived(action.Sender, new ReadOnlyTaggedTokens(tokens));
 					return true;
 				default:
-					return false;
+					return base.HandleEventAction(action);
 			}
 		}
 

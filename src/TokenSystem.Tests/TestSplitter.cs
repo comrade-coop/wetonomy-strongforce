@@ -3,12 +3,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Actions;
-using ContractsCore.Permissions;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.Tokens;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -16,73 +17,59 @@ namespace TokenSystem.Tests
 	public class TestSplitter
 	{
 		private const int RecipientCount = 5;
-		private readonly IAddressFactory addressFactory = new RandomAddressFactory();
 
-		private readonly TokenSplitter splitter;
-		private readonly TokenManager tokenManager;
-		private readonly ContractRegistry contractRegistry;
+		private readonly Address splitter;
+		private readonly Address tokenManager;
+		private readonly Address permissionManager;
+		private readonly ContractRegistry registry = new ContractRegistry();
 		private readonly ISet<Address> recipients;
-
-		private readonly ContractExecutor permissionManager;
 
 		public TestSplitter()
 		{
 			this.recipients = AddressTestUtils.GenerateRandomAddresses(RecipientCount).ToHashSet();
-			this.contractRegistry = new ContractRegistry();
-			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
-
-			this.contractRegistry.RegisterContract(this.permissionManager);
+			this.permissionManager = this.registry.AddressFactory.Create();
 
 			var tokenTagger = new FungibleTokenTagger();
 			var tokenPicker = new FungibleTokenPicker();
-			this.tokenManager = new TokenManager(
-				this.addressFactory.Create(),
-				this.permissionManager.Address,
-				this.contractRegistry,
-				tokenTagger,
-				tokenPicker);
 
-			this.splitter = new UniformTokenSplitter(
-				this.addressFactory.Create(),
-				this.tokenManager.Address,
-				this.recipients);
+			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
+			{
+				{ "Tagger", tokenTagger.ToState() },
+				{ "Picker", tokenPicker.ToState() },
+				{ "Admin", this.permissionManager.ToBase64String() },
+			});
 
-			this.contractRegistry.RegisterContract(this.tokenManager);
-			this.contractRegistry.RegisterContract(this.splitter);
+			this.splitter = this.registry.CreateContract<UniformTokenSplitter>(new Dictionary<string, object>()
+			{
+				{ "TokenManager", this.tokenManager.ToBase64String() },
+				{ "Recipients", this.recipients.Select(x => (object)x.ToBase64String()).ToList() },
+			});
 
-			var mintPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(MintAction)),
-				this.permissionManager.Address);
-
-			AddressWildCard card = new AddressWildCard() {this.splitter.Address, this.permissionManager.Address};
-
-			var transferPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(TransferAction)),
-				card);
-
-			this.permissionManager.ExecuteAction(mintPermission);
-			this.permissionManager.ExecuteAction(transferPermission);
+			this.registry.SendAction(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()
+			{
+				{ AddPermissionAction.PermissionType, MintAction.Type },
+				{ AddPermissionAction.PermissionSender, this.permissionManager.ToBase64String() },
+				{ AddPermissionAction.PermissionTarget, this.tokenManager.ToBase64String() },
+			});
 		}
 
 		[Theory]
 		[InlineData(100)]
 		public void Mint_WhenMintingToSplitter_ShouldSplitToRecipients(int splitAmount)
 		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.splitter.Address);
-			this.permissionManager.ExecuteAction(mintAction);
+			this.registry.SendAction(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			{
+				{ MintAction.To, this.splitter.ToBase64String() },
+				{ MintAction.Amount, splitAmount.ToString() },
+			});
 
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
+				BigInteger actualBalance = new ReadOnlyTaggedTokens(
+					this.registry.GetContract(this.tokenManager).GetState()
+					.GetDictionary("Balances")
+					.GetDictionary(recipient.ToBase64String()) ?? new Dictionary<string, object>()).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}
@@ -91,26 +78,25 @@ namespace TokenSystem.Tests
 		[InlineData(100)]
 		public void Transfer_WhenTransferringToSplitter_ShouldSplitToRecipients(int splitAmount)
 		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager.Address);
+			this.registry.SendAction(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			{
+				{ MintAction.To, this.permissionManager.ToBase64String() },
+				{ MintAction.Amount, splitAmount.ToString() },
+			});
 
-			var transferAction = new TransferAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager.Address,
-				this.splitter.Address);
-
-			this.permissionManager.ExecuteAction(mintAction);
-			this.permissionManager.ExecuteAction(transferAction);
+			this.registry.SendAction(this.permissionManager, this.tokenManager, TransferAction.Type, new Dictionary<string, object>()
+			{
+				{ TransferAction.To, this.splitter.ToBase64String() },
+				{ TransferAction.Amount, splitAmount.ToString() },
+			});
 
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
+				BigInteger actualBalance = new ReadOnlyTaggedTokens(
+					this.registry.GetContract(this.tokenManager).GetState()
+					.GetDictionary("Balances")
+					.GetDictionary(recipient.ToBase64String()) ?? new Dictionary<string, object>()).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}

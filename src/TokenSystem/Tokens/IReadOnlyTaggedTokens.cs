@@ -6,10 +6,12 @@ using System.Numerics;
 
 namespace TokenSystem.Tokens
 {
-	public interface IReadOnlyTaggedTokens : IEnumerable<KeyValuePair<IComparable, BigInteger>>
+	public interface IReadOnlyTaggedTokens : IEnumerable<KeyValuePair<string, BigInteger>>
 	{
 		BigInteger TotalBalance { get; }
 
-		BigInteger TotalBalanceByTag(IComparable tag);
+		BigInteger TotalBalanceByTag(string tag);
+
+		IDictionary<string, object> GetState();
 	}
 }
