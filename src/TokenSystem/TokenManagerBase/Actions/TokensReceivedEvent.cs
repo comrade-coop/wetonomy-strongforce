@@ -9,7 +9,9 @@ namespace TokenSystem.TokenManagerBase.Actions
 	{
 		public const string Type = "TokensReceived";
 
-		public const string Tokens = "Tokens";
+		public const string TokensTransfered = "Tokens";
+
+		public const string TokensTotal = "TokensTotal";
 
 		public const string From = "From";
 	}

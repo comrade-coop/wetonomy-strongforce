@@ -35,8 +35,9 @@ namespace TokenSystem.Tests
 			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
 			{
 				{ "Tagger", tokenTagger.ToState() },
-				{ "Picker", tokenPicker.ToState() },
+				{ "DefaultPicker", tokenPicker.ToState() },
 				{ "Admin", this.permissionManager.ToBase64String() },
+				{ "User", null },
 			});
 
 			this.splitter = this.registry.CreateContract<UniformTokenSplitter>(new Dictionary<string, object>()

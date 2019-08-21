@@ -33,8 +33,9 @@ namespace TokenSystem.Tests
 			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
 			{
 				{ "Tagger", tokenTagger.ToState() },
-				{ "Picker", tokenPicker.ToState() },
+				{ "DefaultPicker", tokenPicker.ToState() },
 				{ "Admin", this.permissionManager.ToBase64String() },
+				{ "User", null },
 			});
 
 			this.registry.SendAction(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()

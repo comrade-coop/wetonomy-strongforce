@@ -12,29 +12,9 @@ namespace TokenSystem.TokenFlow
 {
 	public class UniformTokenSplitter : TokenSplitter
 	{
-		protected BigInteger LeftoverAmount { get; set; } = 0;
-
-		public override IDictionary<string, object> GetState()
+		protected override void Split(Address tokenManager, IReadOnlyTaggedTokens availableTokens)
 		{
-			var state = base.GetState();
-
-			state.Add("LeftoverAmount", this.LeftoverAmount);
-
-			return state;
-		}
-
-		public override void SetState(IDictionary<string, object> state)
-		{
-			base.SetState(state);
-
-			this.LeftoverAmount = BigInteger.Parse(state.GetString("LeftoverAmount"));
-		}
-
-		protected override void Split(IReadOnlyTaggedTokens receivedTokens)
-		{
-			BigInteger amount = this.LeftoverAmount + receivedTokens.TotalBalance;
-			BigInteger splitAmount = amount / this.Recipients.Count;
-			this.LeftoverAmount = amount % this.Recipients.Count;
+			BigInteger splitAmount = availableTokens.TotalBalance / this.Recipients.Count;
 
 			if (splitAmount <= 0)
 			{
@@ -43,7 +23,7 @@ namespace TokenSystem.TokenFlow
 
 			foreach (Address recipient in this.Recipients)
 			{
-				this.SendAction(this.TokenManager, TransferAction.Type, new Dictionary<string, object>()
+				this.SendAction(tokenManager, TransferAction.Type, new Dictionary<string, object>()
 				{
 					{ TransferAction.To, recipient.ToBase64String() },
 					{ TransferAction.Amount, splitAmount.ToString() },

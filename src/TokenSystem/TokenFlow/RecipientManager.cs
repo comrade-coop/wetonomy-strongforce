@@ -16,7 +16,7 @@ namespace TokenSystem.TokenFlow
 		{
 			var state = base.GetState();
 
-			state.Add("Recipients", this.Recipients.Select(x => x.ToBase64String()).ToList());
+			state.Add("Recipients", this.Recipients.Select(x => (object)x.ToBase64String()).ToList());
 
 			return state;
 		}
@@ -37,14 +37,6 @@ namespace TokenSystem.TokenFlow
 		public bool RemoveRecipient(Address recipient)
 		{
 			return this.Recipients.Remove(recipient);
-		}
-
-		protected override void Initialize(IDictionary<string, object> payload)
-		{
-			base.Initialize(payload);
-
-			this.Recipients = new HashSet<Address>(
-				payload.GetList<string>("Recipients").Select(Address.FromBase64String));
 		}
 
 		// protected override bool HandlePayloadAction(PayloadAction action)

@@ -29,9 +29,8 @@ namespace TokenSystem.TokenManagerBase
 				kv => kv.Key.ToBase64String(),
 				kv => (object)kv.Value.GetState()));
 
-			state.Add("Tagger", this.tokenTagger.ToState());
-			state.Add("DefaultPicker", this.defaultTokenPicker.ToState());
-
+			state.Add("Tagger", this.tokenTagger?.ToState());
+			state.Add("DefaultPicker", this.defaultTokenPicker?.ToState());
 			return state;
 		}
 
@@ -43,27 +42,27 @@ namespace TokenSystem.TokenManagerBase
 				kv => Address.FromBase64String(kv.Key),
 				kv => (ITaggedTokens)new TaggedTokens((IDictionary<string, object>)kv.Value));
 
-			this.tokenTagger = (ITokenTagger)state.GetDictionary("Tagger").ToStateObject();
+			this.tokenTagger = (ITokenTagger)state.GetDictionary("Tagger")?.ToStateObject();
 
-			this.defaultTokenPicker = (ITokenPicker)state.GetDictionary("DefaultPicker").ToStateObject();
+			this.defaultTokenPicker = (ITokenPicker)state.GetDictionary("DefaultPicker")?.ToStateObject();
 		}
 
 		protected override void Initialize(IDictionary<string, object> payload)
 		{
+			if (payload.ContainsKey("User"))
+			{
+				this.Acl.AddPermission(
+					payload.GetAddress("User"),
+					BurnAction.Type,
+					this.Address);
+
+				this.Acl.AddPermission(
+					payload.GetAddress("User"),
+					TransferAction.Type,
+					this.Address);
+			}
+
 			base.Initialize(payload);
-
-			this.Acl.AddPermission(
-				null,
-				BurnAction.Type,
-				this.Address);
-
-			this.Acl.AddPermission(
-				null,
-				TransferAction.Type,
-				this.Address);
-
-			this.tokenTagger = (ITokenTagger)payload.GetDictionary("Tagger").ToStateObject();
-			this.defaultTokenPicker = (ITokenPicker)payload.GetDictionary("Picker").ToStateObject();
 		}
 
 		protected override bool HandlePayloadAction(PayloadAction action)
@@ -129,13 +128,7 @@ namespace TokenSystem.TokenManagerBase
 
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
-			ITaggedTokens totalHolderTokens;
-			if (!this.holdersToBalances.TryGetValue(from, out totalHolderTokens))
-			{
-				totalHolderTokens = new TaggedTokens();
-			}
-
-			IReadOnlyTaggedTokens tokensToTransfer = customPicker.Pick(totalHolderTokens, amount);
+			IReadOnlyTaggedTokens tokensToTransfer = customPicker.Pick(this.GetBalances(from), amount);
 
 			this.RemoveFromBalances(tokensToTransfer, from);
 			this.AddToBalances(tokensToTransfer, to);
@@ -151,21 +144,16 @@ namespace TokenSystem.TokenManagerBase
 
 			customPicker = customPicker ?? this.defaultTokenPicker;
 
-			ITaggedTokens totalHolderTokens;
-			if (!this.holdersToBalances.TryGetValue(from, out totalHolderTokens))
-			{
-				totalHolderTokens = new TaggedTokens();
-			}
-
-			IReadOnlyTaggedTokens tokensToBurn = customPicker.Pick(totalHolderTokens, amount);
-			this.holdersToBalances[from].RemoveFromBalance(tokensToBurn);
+			IReadOnlyTaggedTokens tokensToBurn = customPicker.Pick(this.GetBalances(from), amount);
+			this.RemoveFromBalances(tokensToBurn, from);
 		}
 
 		private void NotifyReceived(IReadOnlyTaggedTokens tokens, Address from, Address to)
 		{
 			this.SendEvent(to, TokensReceivedEvent.Type, new Dictionary<string, object>()
 			{
-				{ TokensReceivedEvent.Tokens, tokens.GetState() },
+				{ TokensReceivedEvent.TokensTransfered, tokens.GetState() },
+				{ TokensReceivedEvent.TokensTotal, this.GetBalances(to).GetState() },
 				{ TokensReceivedEvent.From, from?.ToBase64String() },
 			});
 		}
@@ -188,6 +176,16 @@ namespace TokenSystem.TokenManagerBase
 			{
 				this.holdersToBalances.Remove(holder);
 			}
+		}
+
+		private IReadOnlyTaggedTokens GetBalances(Address holder)
+		{
+			if (!this.holdersToBalances.TryGetValue(holder, out ITaggedTokens totalHolderTokens))
+			{
+				totalHolderTokens = new TaggedTokens();
+			}
+
+			return totalHolderTokens;
 		}
 	}
 }
