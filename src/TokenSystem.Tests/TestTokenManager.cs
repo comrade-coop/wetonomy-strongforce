@@ -6,7 +6,9 @@ using System.Numerics;
 using StrongForce.Core;
 using StrongForce.Core.Extensions;
 using StrongForce.Core.Permissions;
+using StrongForce.Core.Tests.Mocks;
 using TokenSystem.Exceptions;
+using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -20,29 +22,30 @@ namespace TokenSystem.Tests
 
 		private readonly Address tokenManager;
 		private readonly Address permissionManager;
-		private readonly ContractRegistry registry = new ContractRegistry();
-		private readonly List<Address> addresses = AddressTestUtils.GenerateRandomAddresses(AddressesCount);
+		private readonly TestRegistry registry = new TestRegistry();
+		private readonly List<Address> addresses = new List<Address>();
 
 		public TestTokenManager()
 		{
 			this.permissionManager = this.registry.AddressFactory.Create();
 
-			var tokenTagger = new FungibleTokenTagger();
-			var tokenPicker = new FungibleTokenPicker();
-
 			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
 			{
-				{ "Tagger", tokenTagger.ToState() },
-				{ "DefaultPicker", tokenPicker.ToState() },
-				{ "Admin", this.permissionManager.ToBase64String() },
+				{ "Admin", this.permissionManager.ToString() },
 				{ "User", null },
 			});
 
-			this.registry.SendAction(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()
+			for (var i = 0; i < AddressesCount; i++)
+			{
+				// Using TokenSplitter as a contract which would allow token transfers
+				this.addresses.Add(this.registry.CreateContract<UniformTokenSplitter>());
+			}
+
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()
 			{
 				{ AddPermissionAction.PermissionType, MintAction.Type },
-				{ AddPermissionAction.PermissionSender, this.permissionManager.ToBase64String() },
-				{ AddPermissionAction.PermissionTarget, this.tokenManager.ToBase64String() },
+				{ AddPermissionAction.PermissionSender, this.permissionManager.ToString() },
+				{ AddPermissionAction.PermissionTarget, this.tokenManager.ToString() },
 			});
 		}
 
@@ -189,36 +192,32 @@ namespace TokenSystem.Tests
 		// TODO: Check for EventAction sent when tokens are transfered
 		private void MintTokens(BigInteger amount, Address receiver)
 		{
-			this.registry.SendAction(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
 			{
 				{ MintAction.Amount, amount.ToString() },
-				{ MintAction.To, receiver.ToBase64String() },
+				{ MintAction.To, receiver.ToString() },
 			});
 		}
 
 		private void TransferTokens(
 			BigInteger amount,
 			Address from,
-			Address to,
-			ITokenPicker tokenPicker = null)
+			Address to)
 		{
-			this.registry.SendAction(from, this.tokenManager, TransferAction.Type, new Dictionary<string, object>()
+			this.registry.SendMessage(from, this.tokenManager, TransferAction.Type, new Dictionary<string, object>()
 			{
 				{ TransferAction.Amount, amount.ToString() },
-				{ TransferAction.To, to.ToBase64String() },
-				{ TransferAction.Picker, tokenPicker?.ToState() },
+				{ TransferAction.To, to.ToString() },
 			});
 		}
 
 		private void BurnTokens(
 			int amount,
-			Address from,
-			ITokenPicker tokenPicker = null)
+			Address from)
 		{
-			this.registry.SendAction(from, this.tokenManager, BurnAction.Type, new Dictionary<string, object>()
+			this.registry.SendMessage(from, this.tokenManager, BurnAction.Type, new Dictionary<string, object>()
 			{
 				{ BurnAction.Amount, amount.ToString() },
-				{ BurnAction.Picker, tokenPicker?.ToState() },
 			});
 		}
 
@@ -227,7 +226,7 @@ namespace TokenSystem.Tests
 			return new ReadOnlyTaggedTokens(
 				this.registry.GetContract(this.tokenManager).GetState()
 				.GetDictionary("Balances")
-				.GetDictionary(address.ToBase64String()) ?? new Dictionary<string, object>());
+				.GetDictionary(address.ToString()) ?? new Dictionary<string, object>());
 		}
 	}
 }

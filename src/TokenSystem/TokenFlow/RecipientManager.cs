@@ -10,35 +10,32 @@ namespace TokenSystem.TokenFlow
 {
 	public abstract class RecipientManager : Contract
 	{
-		public ISet<Address> Recipients { get; private set; } = new HashSet<Address>();
+		protected ISet<Address> Recipients { get; set; } = new HashSet<Address>();
 
 		public override IDictionary<string, object> GetState()
 		{
 			var state = base.GetState();
 
-			state.Add("Recipients", this.Recipients.Select(x => (object)x.ToBase64String()).ToList());
+			state.Set("Recipients", this.Recipients);
 
 			return state;
 		}
 
-		public override void SetState(IDictionary<string, object> state)
+		protected override void SetState(IDictionary<string, object> state)
 		{
 			base.SetState(state);
 
-			this.Recipients = new HashSet<Address>(
-				state.GetList<string>("Recipients").Select(Address.FromBase64String));
+			this.Recipients = new HashSet<Address>(state.GetList<Address>("Recipients"));
 		}
 
-		public bool AddRecipient(Address recipient)
+		protected bool AddRecipient(Address recipient)
 		{
 			return this.Recipients.Add(recipient);
 		}
 
-		public bool RemoveRecipient(Address recipient)
+		protected bool RemoveRecipient(Address recipient)
 		{
 			return this.Recipients.Remove(recipient);
 		}
-
-		// protected override bool HandlePayloadAction(PayloadAction action)
 	}
 }

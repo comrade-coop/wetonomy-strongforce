@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using StrongForce.Core;
 using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.TokenFlow.Actions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
@@ -21,13 +22,13 @@ namespace TokenSystem.TokenFlow
 		{
 			var state = base.GetState();
 
-			state.Add("ExchangeRateNumerator", this.ExchangeRateNumerator);
-			state.Add("ExchangeRateDenominator", this.ExchangeRateDenominator);
+			state.Set("ExchangeRateNumerator", this.ExchangeRateNumerator);
+			state.Set("ExchangeRateDenominator", this.ExchangeRateDenominator);
 
 			return state;
 		}
 
-		public override void SetState(IDictionary<string, object> state)
+		protected override void SetState(IDictionary<string, object> state)
 		{
 			base.SetState(state);
 
@@ -35,20 +36,28 @@ namespace TokenSystem.TokenFlow
 			this.ExchangeRateDenominator = state.Get<int>("ExchangeRateDenominator");
 		}
 
-		protected override bool HandlePayloadAction(PayloadAction action)
+		protected override void Initialize(IDictionary<string, object> payload)
 		{
-			switch (action.Type)
+			this.Acl.AddPermission(AccessControlList.AnyAddress, TokensReceivedEvent.Type, this.Address);
+
+			base.Initialize(payload);
+		}
+
+		protected override void HandleMessage(Message message)
+		{
+			switch (message.Type)
 			{
 				case ExchangeAction.Type:
 					this.Exchange(
-						action.Origin,
-						BigInteger.Parse(action.Payload.GetString(ExchangeAction.Amount)),
-						action.Payload.GetAddress(ExchangeAction.FromTokenManager),
-						action.Payload.GetAddress(ExchangeAction.ToTokenManager),
-						action.Payload.GetDictionary(ExchangeAction.Picker));
-					return true;
+						message.Origin,
+						BigInteger.Parse(message.Payload.Get<string>(ExchangeAction.Amount)),
+						message.Payload.Get<Address>(ExchangeAction.FromTokenManager),
+						message.Payload.Get<Address>(ExchangeAction.ToTokenManager),
+						message.Payload.GetDictionary(ExchangeAction.Picker));
+					break;
 				default:
-					return base.HandlePayloadAction(action);
+					base.HandleMessage(message);
+					return;
 			}
 		}
 
@@ -58,16 +67,16 @@ namespace TokenSystem.TokenFlow
 			var burnAmount = exchangedAmount * this.ExchangeRateDenominator;
 			var mintAmount = exchangedAmount * this.ExchangeRateNumerator;
 
-			this.SendAction(burnTokenManager, BurnOtherAction.Type, new Dictionary<string, object>()
+			this.SendMessage(burnTokenManager, BurnOtherAction.Type, new Dictionary<string, object>()
 			{
-				{ BurnOtherAction.From, targetAddress.ToBase64String() },
+				{ BurnOtherAction.From, targetAddress.ToString() },
 				{ BurnOtherAction.Amount, burnAmount.ToString() },
 				{ BurnOtherAction.Picker, picker },
 			});
 
-			this.SendAction(mintTokenManager, MintAction.Type, new Dictionary<string, object>()
+			this.SendMessage(mintTokenManager, MintAction.Type, new Dictionary<string, object>()
 			{
-				{ MintAction.To, targetAddress.ToBase64String() },
+				{ MintAction.To, targetAddress.ToString() },
 				{ MintAction.Amount, mintAmount.ToString() },
 			});
 		}

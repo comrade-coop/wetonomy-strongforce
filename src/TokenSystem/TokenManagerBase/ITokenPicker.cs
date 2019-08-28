@@ -6,7 +6,7 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManagerBase
 {
-	public interface ITokenPicker : IStateObject
+	public interface ITokenPicker : IStatefulObject
 	{
 		IReadOnlyTaggedTokens Pick(IReadOnlyTaggedTokens tokens, BigInteger amount);
 	}

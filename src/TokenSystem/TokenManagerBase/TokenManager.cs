@@ -15,36 +15,37 @@ namespace TokenSystem.TokenManagerBase
 {
 	public class TokenManager : Contract
 	{
-		private ITokenTagger tokenTagger;
-		private ITokenPicker defaultTokenPicker;
-
-		private IDictionary<Address, ITaggedTokens> holdersToBalances
+		protected IDictionary<Address, ITaggedTokens> Balances { get; set; }
 			= new Dictionary<Address, ITaggedTokens>();
+
+		protected ITokenTagger TokenTagger { get; set; } = new FungibleTokenTagger();
+
+		protected ITokenPicker DefaultTokenPicker { get; set; } = new FungibleTokenPicker();
 
 		public override IDictionary<string, object> GetState()
 		{
 			var state = base.GetState();
 
-			state.Add("Balances", this.holdersToBalances.ToDictionary(
-				kv => kv.Key.ToBase64String(),
+			state.Set("Balances", this.Balances.ToDictionary(
+				kv => kv.Key.ToString(),
 				kv => (object)kv.Value.GetState()));
 
-			state.Add("Tagger", this.tokenTagger?.ToState());
-			state.Add("DefaultPicker", this.defaultTokenPicker?.ToState());
+			// state.Add("Tagger", this.TokenTagger?.ToState());
+			// state.Add("DefaultPicker", this.DefaultTokenPicker?.ToState());
 			return state;
 		}
 
-		public override void SetState(IDictionary<string, object> state)
+		protected override void SetState(IDictionary<string, object> state)
 		{
 			base.SetState(state);
 
-			this.holdersToBalances = state.GetDictionary("Balances").ToDictionary(
-				kv => Address.FromBase64String(kv.Key),
+			this.Balances = state.GetDictionary("Balances").ToDictionary(
+				kv => Address.Parse(kv.Key),
 				kv => (ITaggedTokens)new TaggedTokens((IDictionary<string, object>)kv.Value));
 
-			this.tokenTagger = (ITokenTagger)state.GetDictionary("Tagger")?.ToStateObject();
+			// this.TokenTagger = (ITokenTagger)state.GetDictionary("Tagger")?.ToStateObject();
 
-			this.defaultTokenPicker = (ITokenPicker)state.GetDictionary("DefaultPicker")?.ToStateObject();
+			// this.DefaultTokenPicker = (ITokenPicker)state.GetDictionary("DefaultPicker")?.ToStateObject();
 		}
 
 		protected override void Initialize(IDictionary<string, object> payload)
@@ -52,12 +53,12 @@ namespace TokenSystem.TokenManagerBase
 			if (payload.ContainsKey("User"))
 			{
 				this.Acl.AddPermission(
-					payload.GetAddress("User"),
+					payload.Get<Address>("User"),
 					BurnAction.Type,
 					this.Address);
 
 				this.Acl.AddPermission(
-					payload.GetAddress("User"),
+					payload.Get<Address>("User"),
 					TransferAction.Type,
 					this.Address);
 			}
@@ -65,40 +66,38 @@ namespace TokenSystem.TokenManagerBase
 			base.Initialize(payload);
 		}
 
-		protected override bool HandlePayloadAction(PayloadAction action)
+		protected override void HandleMessage(Message message)
 		{
-			switch (action.Type)
+			switch (message.Type)
 			{
 				case MintAction.Type:
 					this.Mint(
-						BigInteger.Parse(action.Payload.GetString(MintAction.Amount)),
-						action.Payload.GetAddress(MintAction.To));
-					return true;
+						BigInteger.Parse(message.Payload.Get<string>(MintAction.Amount)),
+						message.Payload.Get<Address>(MintAction.To));
+					break;
 
 				case TransferAction.Type:
 					this.Transfer(
-						BigInteger.Parse(action.Payload.GetString(TransferAction.Amount)),
-						action.Origin,
-						action.Payload.GetAddress(TransferAction.To),
-						(ITokenPicker)action.Payload.GetDictionary(TransferAction.Picker)?.ToStateObject());
-					return true;
+						BigInteger.Parse(message.Payload.Get<string>(TransferAction.Amount)),
+						message.Origin,
+						message.Payload.Get<Address>(TransferAction.To));
+					break;
 
 				case BurnAction.Type:
 					this.Burn(
-						BigInteger.Parse(action.Payload.GetString(BurnAction.Amount)),
-						action.Origin,
-						(ITokenPicker)action.Payload.GetDictionary(BurnAction.Picker)?.ToStateObject());
-					return true;
+						BigInteger.Parse(message.Payload.Get<string>(BurnAction.Amount)),
+						message.Origin);
+					break;
 
 				case BurnOtherAction.Type:
 					this.Burn(
-						BigInteger.Parse(action.Payload.GetString(BurnOtherAction.Amount)),
-						action.Payload.GetAddress(BurnOtherAction.From),
-						(ITokenPicker)action.Payload.GetDictionary(BurnOtherAction.Picker)?.ToStateObject());
-					return true;
+						BigInteger.Parse(message.Payload.Get<string>(BurnOtherAction.Amount)),
+						message.Payload.Get<Address>(BurnOtherAction.From));
+					break;
 
 				default:
-					return base.HandlePayloadAction(action);
+					base.HandleMessage(message);
+					return;
 			}
 		}
 
@@ -109,7 +108,7 @@ namespace TokenSystem.TokenManagerBase
 				throw new NonPositiveTokenAmountException(nameof(amount), amount);
 			}
 
-			IReadOnlyTaggedTokens newTokens = this.tokenTagger.Tag(to, amount);
+			IReadOnlyTaggedTokens newTokens = this.TokenTagger.Tag(to, amount);
 			this.AddToBalances(newTokens, to);
 			this.NotifyReceived(newTokens, null, to);
 		}
@@ -126,7 +125,7 @@ namespace TokenSystem.TokenManagerBase
 				throw new NonPositiveTokenAmountException(nameof(amount), amount);
 			}
 
-			customPicker = customPicker ?? this.defaultTokenPicker;
+			customPicker = customPicker ?? this.DefaultTokenPicker;
 
 			IReadOnlyTaggedTokens tokensToTransfer = customPicker.Pick(this.GetBalances(from), amount);
 
@@ -142,7 +141,7 @@ namespace TokenSystem.TokenManagerBase
 				throw new NonPositiveTokenAmountException(nameof(amount), amount);
 			}
 
-			customPicker = customPicker ?? this.defaultTokenPicker;
+			customPicker = customPicker ?? this.DefaultTokenPicker;
 
 			IReadOnlyTaggedTokens tokensToBurn = customPicker.Pick(this.GetBalances(from), amount);
 			this.RemoveFromBalances(tokensToBurn, from);
@@ -150,37 +149,37 @@ namespace TokenSystem.TokenManagerBase
 
 		private void NotifyReceived(IReadOnlyTaggedTokens tokens, Address from, Address to)
 		{
-			this.SendEvent(to, TokensReceivedEvent.Type, new Dictionary<string, object>()
+			this.SendMessage(to, TokensReceivedEvent.Type, new Dictionary<string, object>()
 			{
 				{ TokensReceivedEvent.TokensTransfered, tokens.GetState() },
 				{ TokensReceivedEvent.TokensTotal, this.GetBalances(to).GetState() },
-				{ TokensReceivedEvent.From, from?.ToBase64String() },
+				{ TokensReceivedEvent.From, from?.ToString() },
 			});
 		}
 
 		private void AddToBalances(IReadOnlyTaggedTokens tokens, Address holder)
 		{
-			if (!this.holdersToBalances.ContainsKey(holder))
+			if (!this.Balances.ContainsKey(holder))
 			{
-				this.holdersToBalances[holder] = new TaggedTokens();
+				this.Balances[holder] = new TaggedTokens();
 			}
 
-			this.holdersToBalances[holder].AddToBalance(tokens);
+			this.Balances[holder].AddToBalance(tokens);
 		}
 
 		private void RemoveFromBalances(IReadOnlyTaggedTokens tokens, Address holder)
 		{
-			this.holdersToBalances[holder].RemoveFromBalance(tokens);
+			this.Balances[holder].RemoveFromBalance(tokens);
 
-			if (this.holdersToBalances[holder].TotalBalance == 0)
+			if (this.Balances[holder].TotalBalance == 0)
 			{
-				this.holdersToBalances.Remove(holder);
+				this.Balances.Remove(holder);
 			}
 		}
 
 		private IReadOnlyTaggedTokens GetBalances(Address holder)
 		{
-			if (!this.holdersToBalances.TryGetValue(holder, out ITaggedTokens totalHolderTokens))
+			if (!this.Balances.TryGetValue(holder, out ITaggedTokens totalHolderTokens))
 			{
 				totalHolderTokens = new TaggedTokens();
 			}

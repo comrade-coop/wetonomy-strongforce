@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using StrongForce.Core;
 using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -14,16 +15,24 @@ namespace TokenSystem.TokenFlow
 	{
 		protected abstract void Split(Address tokenManager, IReadOnlyTaggedTokens availableTokens);
 
-		protected override bool HandleEventAction(EventAction action)
+		protected override void Initialize(IDictionary<string, object> payload)
 		{
-			switch (action.Type)
+			this.Acl.AddPermission(AccessControlList.AnyAddress, TokensReceivedEvent.Type, this.Address);
+
+			base.Initialize(payload);
+		}
+
+		protected override void HandleMessage(Message message)
+		{
+			switch (message.Type)
 			{
 				case TokensReceivedEvent.Type:
-					var tokens = action.Payload.GetDictionary(TokensReceivedEvent.TokensTotal);
-					this.Split(action.Sender, new ReadOnlyTaggedTokens(tokens));
-					return true;
+					var tokens = message.Payload.GetDictionary(TokensReceivedEvent.TokensTotal);
+					this.Split(message.Sender, new ReadOnlyTaggedTokens(tokens));
+					break;
 				default:
-					return base.HandleEventAction(action);
+					base.HandleMessage(message);
+					return;
 			}
 		}
 	}

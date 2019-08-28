@@ -14,6 +14,11 @@ namespace TokenSystem.TokenFlow
 	{
 		protected override void Split(Address tokenManager, IReadOnlyTaggedTokens availableTokens)
 		{
+			if (this.Recipients.Count <= 0)
+			{
+				return;
+			}
+
 			BigInteger splitAmount = availableTokens.TotalBalance / this.Recipients.Count;
 
 			if (splitAmount <= 0)
@@ -23,9 +28,9 @@ namespace TokenSystem.TokenFlow
 
 			foreach (Address recipient in this.Recipients)
 			{
-				this.SendAction(tokenManager, TransferAction.Type, new Dictionary<string, object>()
+				this.SendMessage(tokenManager, TransferAction.Type, new Dictionary<string, object>()
 				{
-					{ TransferAction.To, recipient.ToBase64String() },
+					{ TransferAction.To, recipient.ToString() },
 					{ TransferAction.Amount, splitAmount.ToString() },
 				});
 			}

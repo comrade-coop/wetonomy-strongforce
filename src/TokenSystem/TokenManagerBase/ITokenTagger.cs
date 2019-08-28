@@ -6,7 +6,7 @@ using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManagerBase
 {
-	public interface ITokenTagger : IStateObject
+	public interface ITokenTagger : IStatefulObject
 	{
 		IReadOnlyTaggedTokens Tag(Address owner, BigInteger amount);
 	}
