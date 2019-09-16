@@ -6,9 +6,10 @@ mono: none
 dotnet: 2.2
 
 install:
-  - dotnet restore src/Wetonomy.sln
-  - dotnet add src/TokenSystem.Tests/TokenSystem.Tests.csproj package  xunit --version 2.4.1
+  - dotnet restore src/TokenSystem/TokenSystem.csproj
+  - dotnet restore src/TokenSystem.Tests/TokenSystem.Tests.csproj
 
 script:
-  - dotnet build src/Wetonomy.sln
+  - dotnet build src/TokenSystem/TokenSystem.csproj
+  - dotnet build src/TokenSystem.Tests/TokenSystem.Tests.csproj
   - dotnet test src/TokenSystem.Tests/TokenSystem.Tests.csproj

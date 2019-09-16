@@ -1,6 +1,6 @@
 // Copyright (c) Comrade Coop. All rights reserved.
 
-using ContractsCore;
+using StrongForce.Core;
 using TokenSystem.Tokens;
 
 namespace TokenSystem.TokenManagerBase

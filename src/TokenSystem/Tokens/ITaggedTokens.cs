@@ -7,11 +7,11 @@ namespace TokenSystem.Tokens
 {
 	public interface ITaggedTokens : IReadOnlyTaggedTokens
 	{
-		void AddToBalance(IComparable tag, BigInteger amount);
+		void AddToBalance(string tag, BigInteger amount);
 
 		void AddToBalance(IReadOnlyTaggedTokens tokens);
 
-		void RemoveFromBalance(IComparable tag, BigInteger amount);
+		void RemoveFromBalance(string tag, BigInteger amount);
 
 		void RemoveFromBalance(IReadOnlyTaggedTokens tokens);
 	}

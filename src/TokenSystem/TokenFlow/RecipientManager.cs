@@ -2,45 +2,40 @@
 
 using System;
 using System.Collections.Generic;
-using ContractsCore;
-using ContractsCore.Contracts;
-using Action = ContractsCore.Actions.Action;
+using System.Linq;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
 
 namespace TokenSystem.TokenFlow
 {
 	public abstract class RecipientManager : Contract
 	{
-		public RecipientManager(Address address)
-			: this(address, new HashSet<Address>())
+		protected ISet<Address> Recipients { get; set; } = new HashSet<Address>();
+
+		public override IDictionary<string, object> GetState()
 		{
+			var state = base.GetState();
+
+			state.Set("Recipients", this.Recipients);
+
+			return state;
 		}
 
-		public RecipientManager(Address address, ISet<Address> recipients)
-			: base(address)
+		protected override void SetState(IDictionary<string, object> state)
 		{
-			this.Recipients = recipients;
+			base.SetState(state);
+
+			this.Recipients = new HashSet<Address>(state.GetList<Address>("Recipients"));
 		}
 
-		public ISet<Address> Recipients { get; }
-
-		public bool AddRecipient(Address recipient)
+		protected bool AddRecipient(Address recipient)
 		{
 			return this.Recipients.Add(recipient);
 		}
 
-		public bool RemoveRecipient(Address recipient)
+		protected bool RemoveRecipient(Address recipient)
 		{
 			return this.Recipients.Remove(recipient);
-		}
-
-		protected override object GetState()
-		{
-			throw new NotImplementedException();
-		}
-
-		protected override bool HandleReceivedAction(Action action)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

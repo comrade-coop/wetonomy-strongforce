@@ -3,11 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Actions;
-using ContractsCore.Permissions;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.Exceptions;
-using TokenSystem.TokenEventArgs;
+using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -19,57 +19,45 @@ namespace TokenSystem.Tests
 	{
 		private const int AddressesCount = 10;
 
-		private readonly TokenManager tokenManager;
-		private readonly ContractRegistry contractRegistry;
-		private readonly ContractExecutor permissionManager;
-		private readonly List<Address> addresses = AddressTestUtils.GenerateRandomAddresses(AddressesCount);
+		private readonly Address tokenManager;
+		private readonly Address permissionManager;
+		private readonly TestRegistry registry = new TestRegistry();
+		private readonly List<Address> addresses = new List<Address>();
 
 		public TestTokenManager()
 		{
-			var tokenTagger = new FungibleTokenTagger();
-			var tokenPicker = new FungibleTokenPicker();
-			this.permissionManager = new ContractExecutor(this.addresses[9]);
-			this.tokenManager = new TokenManager(
-				this.addresses[0],
-				this.permissionManager.Address,
-				this.contractRegistry,
-				tokenTagger,
-				tokenPicker);
+			this.permissionManager = this.registry.AddressFactory.Create();
 
-			this.contractRegistry = new ContractRegistry();
-			this.contractRegistry.RegisterContract(this.tokenManager);
-			this.contractRegistry.RegisterContract(this.permissionManager);
+			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
+			{
+				{ "Admin", this.permissionManager.ToString() },
+				{ "User", null },
+			});
 
-			var mintPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(MintAction)),
-				this.permissionManager.Address);
-			var transferPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(TransferAction)),
-				this.permissionManager.Address);
-			var burnPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(BurnAction)),
-				this.permissionManager.Address);
+			for (var i = 0; i < AddressesCount; i++)
+			{
+				// Using TokenSplitter as a contract which would allow token transfers
+				this.addresses.Add(this.registry.CreateContract<UniformTokenSplitter>());
+			}
 
-			this.permissionManager.ExecuteAction(mintPermission);
-			this.permissionManager.ExecuteAction(transferPermission);
-			this.permissionManager.ExecuteAction(burnPermission);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()
+			{
+				{ AddPermissionAction.PermissionType, MintAction.Type },
+				{ AddPermissionAction.PermissionSender, this.permissionManager.ToString() },
+				{ AddPermissionAction.PermissionTarget, this.tokenManager.ToString() },
+			});
 		}
 
 		[Fact]
 		public void TaggedBalance_WhenTokenManagerHasBeenInstantiated_ShouldHaveAllBalancesToZero()
 		{
-			IReadOnlyTaggedTokens taggedBalance = this.tokenManager.TaggedTotalBalance();
-			Assert.Equal(0, taggedBalance.TotalBalance);
+			IDictionary<string, object> balances = this.registry.GetContract(this.tokenManager).GetState().GetDictionary("Balances");
+
+			Assert.Equal(0, balances.Count);
 
 			this.addresses.ForEach(address =>
 			{
-				IReadOnlyTaggedTokens balance = this.tokenManager.TaggedBalanceOf(address);
+				IReadOnlyTaggedTokens balance = this.GetBalanceOf(address);
 				Assert.Equal(0, balance.TotalBalance);
 			});
 		}
@@ -82,8 +70,7 @@ namespace TokenSystem.Tests
 
 			this.MintTokens(amount, receiver);
 
-			Assert.Equal(amount, this.tokenManager.TaggedBalanceOf(receiver).TotalBalance);
-			Assert.Equal(amount, this.tokenManager.TaggedTotalBalance().TotalBalance);
+			Assert.Equal(amount, this.GetBalanceOf(receiver).TotalBalance);
 		}
 
 		[Theory]
@@ -107,13 +94,13 @@ namespace TokenSystem.Tests
 			this.MintTokens(mintAmount, from);
 			this.MintTokens(mintAmount, to);
 
-			BigInteger balanceFromBeforeTransfer = this.tokenManager.TaggedBalanceOf(from).TotalBalance;
-			BigInteger balanceToBeforeTransfer = this.tokenManager.TaggedBalanceOf(to).TotalBalance;
+			BigInteger balanceFromBeforeTransfer = this.GetBalanceOf(from).TotalBalance;
+			BigInteger balanceToBeforeTransfer = this.GetBalanceOf(to).TotalBalance;
 
 			this.TransferTokens(transferAmount, from, to);
 
-			IReadOnlyTaggedTokens balanceFromAfterTransfer = this.tokenManager.TaggedBalanceOf(from);
-			IReadOnlyTaggedTokens balanceOfToAfterTransfer = this.tokenManager.TaggedBalanceOf(to);
+			IReadOnlyTaggedTokens balanceFromAfterTransfer = this.GetBalanceOf(from);
+			IReadOnlyTaggedTokens balanceOfToAfterTransfer = this.GetBalanceOf(to);
 
 			Assert.Equal(
 				balanceFromBeforeTransfer - transferAmount,
@@ -170,11 +157,11 @@ namespace TokenSystem.Tests
 			Address address = this.addresses[0];
 
 			this.MintTokens(mintAmount, address);
-			BigInteger balanceBeforeBurn = this.tokenManager.TaggedBalanceOf(address).TotalBalance;
+			BigInteger balanceBeforeBurn = this.GetBalanceOf(address).TotalBalance;
 
 			this.BurnTokens(burnAmount, address);
 
-			IReadOnlyTaggedTokens balanceAfterBurn = this.tokenManager.TaggedBalanceOf(address);
+			IReadOnlyTaggedTokens balanceAfterBurn = this.GetBalanceOf(address);
 
 			Assert.Equal(balanceBeforeBurn - burnAmount, balanceAfterBurn.TotalBalance);
 		}
@@ -201,92 +188,44 @@ namespace TokenSystem.Tests
 				() => this.BurnTokens(burnAmount, address));
 		}
 
-		[Theory]
-		[InlineData(1000)]
-		public void Mint_RaisesEvent(int mintAmount)
-		{
-			Address to = this.addresses[0];
-			this.tokenManager.TokensMinted += (sender, args) =>
-			{
-				Assert.Equal(mintAmount, args.Tokens.TotalBalance);
-				Assert.Equal(to, args.To);
-			};
-
-			this.MintTokens(mintAmount, to);
-		}
-
-		[Theory]
-		[InlineData(1000, 100)]
-		public void Transfer_RaisesEvent(int mintAmount, int transferAmount)
-		{
-			Address from = this.addresses[0];
-			Address to = this.addresses[1];
-
-			this.tokenManager.TokensTransferred += (sender, args) =>
-			{
-				Assert.Equal(transferAmount, args.Tokens.TotalBalance);
-				Assert.Equal(from, args.From);
-				Assert.Equal(to, args.To);
-			};
-
-			this.MintTokens(mintAmount, from);
-			this.TransferTokens(transferAmount, from, to);
-		}
-
-		[Theory]
-		[InlineData(1000, 100)]
-		public void Burn_RaisesEvent(int mintAmount, int burnAmount)
-		{
-			Address from = this.addresses[0];
-
-			this.tokenManager.TokensBurned += (sender, args) =>
-			{
-				Assert.Equal(burnAmount, args.Tokens.TotalBalance);
-				Assert.Equal(from, args.From);
-			};
-
-			this.MintTokens(mintAmount, from);
-			this.BurnTokens(burnAmount, from);
-		}
-
+		// TODO: Check for EventAction sent when tokens are transfered
 		private void MintTokens(BigInteger amount, Address receiver)
 		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				amount,
-				receiver);
-			this.permissionManager.ExecuteAction(mintAction);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			{
+				{ MintAction.Amount, amount.ToString() },
+				{ MintAction.To, receiver.ToString() },
+			});
 		}
 
 		private void TransferTokens(
 			BigInteger amount,
 			Address from,
-			Address to,
-			ITokenPicker tokenPicker = null)
+			Address to)
 		{
-			var transferAction = new TransferAction(
-				string.Empty,
-				this.tokenManager.Address,
-				amount,
-				from,
-				to,
-				tokenPicker);
-			this.permissionManager.ExecuteAction(transferAction);
+			this.registry.SendMessage(from, this.tokenManager, TransferAction.Type, new Dictionary<string, object>()
+			{
+				{ TransferAction.Amount, amount.ToString() },
+				{ TransferAction.To, to.ToString() },
+			});
 		}
 
 		private void BurnTokens(
 			int amount,
-			Address from,
-			ITokenPicker tokenPicker = null)
+			Address from)
 		{
-			var burnAction = new BurnAction(
-				string.Empty,
-				this.tokenManager.Address,
-				amount,
-				from,
-				tokenPicker);
-			this.permissionManager.ExecuteAction(burnAction);
+			this.registry.SendMessage(from, this.tokenManager, BurnAction.Type, new Dictionary<string, object>()
+			{
+				{ BurnAction.Amount, amount.ToString() },
+			});
+		}
+
+		private IReadOnlyTaggedTokens GetBalanceOf(Address address)
+		{
+			return new ReadOnlyTaggedTokens(
+				this.registry.GetContract(this.tokenManager).GetState()
+				.GetDictionary("Balances")
+				.GetDictionary(address.ToString()) ?? new Dictionary<string, object>());
 		}
 	}
 }

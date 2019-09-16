@@ -3,12 +3,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Actions;
-using ContractsCore.Permissions;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.TokenFlow;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
+using TokenSystem.Tokens;
 using Xunit;
 
 namespace TokenSystem.Tests
@@ -16,73 +17,60 @@ namespace TokenSystem.Tests
 	public class TestSplitter
 	{
 		private const int RecipientCount = 5;
-		private readonly IAddressFactory addressFactory = new RandomAddressFactory();
 
-		private readonly TokenSplitter splitter;
-		private readonly TokenManager tokenManager;
-		private readonly ContractRegistry contractRegistry;
-		private readonly ISet<Address> recipients;
-
-		private readonly ContractExecutor permissionManager;
+		private readonly Address splitter;
+		private readonly Address tokenManager;
+		private readonly Address permissionManager;
+		private readonly TestRegistry registry = new TestRegistry();
+		private readonly ISet<Address> recipients = new HashSet<Address>();
 
 		public TestSplitter()
 		{
-			this.recipients = AddressTestUtils.GenerateRandomAddresses(RecipientCount).ToHashSet();
-			this.contractRegistry = new ContractRegistry();
-			this.permissionManager = new ContractExecutor(this.addressFactory.Create());
+			for (var i = 0; i < RecipientCount; i++)
+			{
+				// Using TokenSplitter as a contract which would allow token transfers
+				this.recipients.Add(this.registry.CreateContract<UniformTokenSplitter>());
+			}
 
-			this.contractRegistry.RegisterContract(this.permissionManager);
+			this.permissionManager = this.registry.CreateContract<UniformTokenSplitter>();
 
-			var tokenTagger = new FungibleTokenTagger();
-			var tokenPicker = new FungibleTokenPicker();
-			this.tokenManager = new TokenManager(
-				this.addressFactory.Create(),
-				this.permissionManager.Address,
-				this.contractRegistry,
-				tokenTagger,
-				tokenPicker);
+			this.tokenManager = this.registry.CreateContract<TokenManager>(new Dictionary<string, object>()
+			{
+				{ "Admin", this.permissionManager.ToString() },
+				{ "User", null },
+			});
 
-			this.splitter = new UniformTokenSplitter(
-				this.addressFactory.Create(),
-				this.tokenManager.Address,
-				this.recipients);
+			this.splitter = this.registry.CreateContract<UniformTokenSplitter>(new Dictionary<string, object>()
+			{
+				{ "TokenManager", this.tokenManager.ToString() },
+				{ "Recipients", this.recipients.Select(x => (object)x.ToString()).ToList() },
+			});
 
-			this.contractRegistry.RegisterContract(this.tokenManager);
-			this.contractRegistry.RegisterContract(this.splitter);
-
-			var mintPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(MintAction)),
-				this.permissionManager.Address);
-
-			AddressWildCard card = new AddressWildCard() {this.splitter.Address, this.permissionManager.Address};
-
-			var transferPermission = new AddPermissionAction(
-				string.Empty,
-				this.tokenManager.Address,
-				new Permission(typeof(TransferAction)),
-				card);
-
-			this.permissionManager.ExecuteAction(mintPermission);
-			this.permissionManager.ExecuteAction(transferPermission);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, AddPermissionAction.Type, new Dictionary<string, object>()
+			{
+				{ AddPermissionAction.PermissionType, MintAction.Type },
+				{ AddPermissionAction.PermissionSender, this.permissionManager.ToString() },
+				{ AddPermissionAction.PermissionTarget, this.tokenManager.ToString() },
+			});
 		}
 
 		[Theory]
 		[InlineData(100)]
 		public void Mint_WhenMintingToSplitter_ShouldSplitToRecipients(int splitAmount)
 		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.splitter.Address);
-			this.permissionManager.ExecuteAction(mintAction);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			{
+				{ MintAction.To, this.splitter.ToString() },
+				{ MintAction.Amount, splitAmount.ToString() },
+			});
 
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
+				BigInteger actualBalance = new ReadOnlyTaggedTokens(
+					this.registry.GetContract(this.tokenManager).GetState()
+					.GetDictionary("Balances")
+					.GetDictionary(recipient.ToString()) ?? new Dictionary<string, object>()).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}
@@ -91,26 +79,25 @@ namespace TokenSystem.Tests
 		[InlineData(100)]
 		public void Transfer_WhenTransferringToSplitter_ShouldSplitToRecipients(int splitAmount)
 		{
-			var mintAction = new MintAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager.Address);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, MintAction.Type, new Dictionary<string, object>()
+			{
+				{ MintAction.To, this.permissionManager.ToString() },
+				{ MintAction.Amount, splitAmount.ToString() },
+			});
 
-			var transferAction = new TransferAction(
-				string.Empty,
-				this.tokenManager.Address,
-				splitAmount,
-				this.permissionManager.Address,
-				this.splitter.Address);
-
-			this.permissionManager.ExecuteAction(mintAction);
-			this.permissionManager.ExecuteAction(transferAction);
+			this.registry.SendMessage(this.permissionManager, this.tokenManager, TransferAction.Type, new Dictionary<string, object>()
+			{
+				{ TransferAction.To, this.splitter.ToString() },
+				{ TransferAction.Amount, splitAmount.ToString() },
+			});
 
 			foreach (Address recipient in this.recipients)
 			{
 				BigInteger expectedBalance = splitAmount / this.recipients.Count;
-				BigInteger actualBalance = this.tokenManager.TaggedBalanceOf(recipient).TotalBalance;
+				BigInteger actualBalance = new ReadOnlyTaggedTokens(
+					this.registry.GetContract(this.tokenManager).GetState()
+					.GetDictionary("Balances")
+					.GetDictionary(recipient.ToString()) ?? new Dictionary<string, object>()).TotalBalance;
 				Assert.Equal(expectedBalance, actualBalance);
 			}
 		}

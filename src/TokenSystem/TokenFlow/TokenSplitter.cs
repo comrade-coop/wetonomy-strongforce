@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using ContractsCore;
-using ContractsCore.Actions;
-using TokenSystem.TokenEventArgs;
+using StrongForce.Core;
+using StrongForce.Core.Extensions;
+using StrongForce.Core.Permissions;
 using TokenSystem.TokenManagerBase;
 using TokenSystem.TokenManagerBase.Actions;
 using TokenSystem.Tokens;
@@ -13,46 +13,26 @@ namespace TokenSystem.TokenFlow
 {
 	public abstract class TokenSplitter : RecipientManager
 	{
-		public TokenSplitter(
-			Address address,
-			Address tokenManager)
-			: this(address, tokenManager, new HashSet<Address>())
+		protected abstract void Split(Address tokenManager, IReadOnlyTaggedTokens availableTokens);
+
+		protected override void Initialize(IDictionary<string, object> payload)
 		{
+			this.Acl.AddPermission(AccessControlList.AnyAddress, TokensReceivedEvent.Type, this.Address);
+
+			base.Initialize(payload);
 		}
 
-		public TokenSplitter(
-			Address address,
-			Address tokenManager,
-			ISet<Address> recipients)
-			: base(address, recipients)
+		protected override void HandleMessage(Message message)
 		{
-			this.TokenManager = tokenManager;
-		}
-
-		protected Address TokenManager { get; }
-
-		protected abstract void Split(IReadOnlyTaggedTokens receivedTokens, object options = null);
-
-		protected override bool HandleReceivedAction(Action action)
-		{
-			switch (action)
+			switch (message.Type)
 			{
-				case TokensReceivedAction tokensReceivedAction:
-					this.OnTokensReceived(tokensReceivedAction.Sender, tokensReceivedAction.Tokens);
-					return true;
-				case TokensMintedAction tokensMintedAction:
-					this.OnTokensReceived(tokensMintedAction.Sender, tokensMintedAction.Tokens);
-					return true;
+				case TokensReceivedEvent.Type:
+					var tokens = message.Payload.GetDictionary(TokensReceivedEvent.TokensTotal);
+					this.Split(message.Sender, new ReadOnlyTaggedTokens(tokens));
+					break;
 				default:
-					return false;
-			}
-		}
-
-		private void OnTokensReceived(Address tokenManagerAddress, IReadOnlyTaggedTokens tokens)
-		{
-			if (tokenManagerAddress.Equals(this.TokenManager))
-			{
-				this.Split(tokens);
+					base.HandleMessage(message);
+					return;
 			}
 		}
 	}
